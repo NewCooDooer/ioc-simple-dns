@@ -1,0 +1,30 @@
+{
+  "recorded": "2026-11-06",
+  "steps": [
+    {
+      "url": "https://dns.google/resolve?name=this-does-not-exist-zzqq1234.com&type=1",
+      "status": 200,
+      "body": "{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"this-does-not-exist-zzqq1234.com.\",\"type\":1}],\"Authority\":[{\"name\":\"com.\",\"type\":6,\"TTL\":900,\"data\":\"a.gtld-servers.net. nstld.verisign-grs.com. 1793987796 1800 900 604800 900\"}],\"Comment\":\"Response from 192.48.79.30.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=this-does-not-exist-zzqq1234.com&type=28",
+      "status": 200,
+      "body": "{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"this-does-not-exist-zzqq1234.com.\",\"type\":28}],\"Authority\":[{\"name\":\"com.\",\"type\":6,\"TTL\":900,\"data\":\"a.gtld-servers.net. nstld.verisign-grs.com. 1793987796 1800 900 604800 900\"}],\"Comment\":\"Response from 192.41.162.30.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=this-does-not-exist-zzqq1234.com&type=2",
+      "status": 200,
+      "body": "{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"this-does-not-exist-zzqq1234.com.\",\"type\":2}],\"Authority\":[{\"name\":\"com.\",\"type\":6,\"TTL\":900,\"data\":\"a.gtld-servers.net. nstld.verisign-grs.com. 1793987811 1800 900 604800 900\"}],\"Comment\":\"Response from 2001:502:7094::30.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=this-does-not-exist-zzqq1234.com&type=15",
+      "status": 200,
+      "body": "{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"this-does-not-exist-zzqq1234.com.\",\"type\":15}],\"Authority\":[{\"name\":\"com.\",\"type\":6,\"TTL\":900,\"data\":\"a.gtld-servers.net. nstld.verisign-grs.com. 1793987796 1800 900 604800 900\"}],\"Comment\":\"Response from 2001:503:d414::30.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=this-does-not-exist-zzqq1234.com&type=16",
+      "status": 200,
+      "body": "{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"this-does-not-exist-zzqq1234.com.\",\"type\":16}],\"Authority\":[{\"name\":\"com.\",\"type\":6,\"TTL\":900,\"data\":\"a.gtld-servers.net. nstld.verisign-grs.com. 1793987811 1800 900 604800 900\"}],\"Comment\":\"Response from 192.52.178.30.\"}"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "recorded": "2026-11-06",
+  "steps": [
+    {
+      "url": "https://rdap.org/domain/this-does-not-exist-zzqq1234.com",
+      "status": 302,
+      "location": "https://rdap.verisign.com/com/v1/domain/this-does-not-exist-zzqq1234.com"
+    },
+    {
+      "url": "https://rdap.verisign.com/com/v1/domain/this-does-not-exist-zzqq1234.com",
+      "status": 404,
+      "body": ""
+    }
+  ]
+}

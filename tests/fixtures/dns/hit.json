@@ -1,0 +1,30 @@
+{
+  "recorded": "2026-11-06",
+  "steps": [
+    {
+      "url": "https://dns.google/resolve?name=example.com&type=1",
+      "status": 200,
+      "body": "{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":1}],\"Answer\":[{\"name\":\"example.com.\",\"type\":1,\"TTL\":300,\"data\":\"104.20.23.154\"},{\"name\":\"example.com.\",\"type\":1,\"TTL\":300,\"data\":\"172.66.147.243\"}],\"Comment\":\"Response from 108.162.192.162.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=example.com&type=28",
+      "status": 200,
+      "body": "{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":28}],\"Answer\":[{\"name\":\"example.com.\",\"type\":28,\"TTL\":300,\"data\":\"2606:4700:10::6814:179a\"},{\"name\":\"example.com.\",\"type\":28,\"TTL\":300,\"data\":\"2606:4700:10::ac42:93f3\"}],\"Comment\":\"Response from 108.162.195.228.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=example.com&type=2",
+      "status": 200,
+      "body": "{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":2}],\"Answer\":[{\"name\":\"example.com.\",\"type\":2,\"TTL\":21600,\"data\":\"elliott.ns.cloudflare.com.\"},{\"name\":\"example.com.\",\"type\":2,\"TTL\":21600,\"data\":\"hera.ns.cloudflare.com.\"}],\"Comment\":\"Response from 172.64.35.228.\"}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=example.com&type=15",
+      "status": 200,
+      "body": "{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":15}],\"Answer\":[{\"name\":\"example.com.\",\"type\":15,\"TTL\":56,\"data\":\"0 .\"}]}"
+    },
+    {
+      "url": "https://dns.google/resolve?name=example.com&type=16",
+      "status": 200,
+      "body": "{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":16}],\"Answer\":[{\"name\":\"example.com.\",\"type\":16,\"TTL\":300,\"data\":\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\"},{\"name\":\"example.com.\",\"type\":16,\"TTL\":300,\"data\":\"v=spf1 -all\"}],\"Comment\":\"Response from 162.159.44.228.\"}"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import os
 
 from flask import Flask, jsonify
 
-from backend.sources import ask_dns
+from backend.sources import ask_crtsh, ask_dns, ask_rdap
 from backend.validate import check_name
 
 app = Flask(__name__)
@@ -35,8 +35,13 @@ def domain(name):
     except ValueError as problem:
         return error_answer(400, f"not a valid DNS name: {name} ({problem})", name)
 
-    # Step 2: ask the sources. (Milestone 1 has only one. Milestone 2 adds RDAP and crt.sh.)
-    sources = {"dns": ask_dns(clean_name)}
+    # Step 2: ask the three sources, one after another, in the order they are written here.
+    # (Each ask_... function never crashes: a problem comes back as an error result.)
+    sources = {
+        "dns": ask_dns(clean_name),
+        "rdap": ask_rdap(clean_name),
+        "crtsh": ask_crtsh(clean_name),
+    }
 
     # Step 3: if EVERY source ended in an error, answer 502. Otherwise answer 200 with whatever we have.
     all_failed = True

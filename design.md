@@ -1,6 +1,6 @@
 # IOC Enrichment Portal (DNS names), simple version: design
 
-Status: Milestone 0 · Written 2026-11-06 · Owner: Evan Murphy
+Status: Milestone 2 · Written 2026-11-06, updated for Milestone 2 · Owner: Evan Murphy
 
 This is a deliberately **small** version of an existing, finished project (https://github.com/NewCooDooer/ioc-enrichment-portal-dns).
 It meets the same assignment specs with the simplest code possible: plain functions, no `async`, no extras.
@@ -46,6 +46,7 @@ Browser -> Streamlit page (port 8510) --HTTP/JSON--> Flask backend (port 8010) -
 | Recordings | JSON files saved by `record.py` | Readable; the recorder saves status and body only, never headers, so no key can leak. |
 | Settings | environment variables | `BACKEND_PORT`, `BACKEND_URL`, plus three optional source addresses (only to make a source fail on purpose). |
 | Containers | none | Allowed (at most two); fewer moving parts. |
+| Identification | a `User-Agent` header saying `ioc-simple-dns/0.1 (training project)` | Polite to public services. It deliberately contains no personal e-mail address. |
 | Python | 3.11 or newer (developed on 3.14.7) | |
 | Repository | public | The instructor must be able to read it; there are no keys. |
 
@@ -78,7 +79,7 @@ Every source block has `status`, `data` and, only on error, `error`:
 | `error` | we could not get an answer (`error.code` is `timeout`, `upstream_error` or `invalid_response`) |
 
 **`not_found` is an answer; `error` is not.** A failed source never changes the status code. The other sources still return.
-In Milestone 1 only `dns` is present; `rdap` and `crtsh` are added in Milestone 2 without renaming anything.
+In Milestone 1 only `dns` was present; Milestone 2 adds `rdap` and `crtsh` without renaming anything. The sources are asked in the order dns, rdap, crtsh.
 
 Other responses, always in the same format `{"error": "...", "input": "..."}` (`input` only when there is one):
 
