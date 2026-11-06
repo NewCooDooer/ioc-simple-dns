@@ -345,5 +345,5 @@ Each time the code was restored and all tests passed again.
 - A lookup takes the **sum** of the three sources (14 s in the evidence run), the price of having no async code.
 
 ### Pull request
-_filled in after it is opened_
+#3 "Milestone 2: three sources and recorded offline tests": https://github.com/NewCooDooer/ioc-simple-dns/pull/3
 
