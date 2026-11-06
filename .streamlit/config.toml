@@ -1,0 +1,6 @@
+# Only this computer may open the page (Streamlit's default is every network interface).
+[server]
+address = "127.0.0.1"
+
+[browser]
+gatherUsageStats = false
