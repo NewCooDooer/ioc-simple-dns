@@ -1,0 +1,10 @@
+{
+  "recorded": "2026-11-06",
+  "steps": [
+    {
+      "url": "https://crt.sh/?q=this-does-not-exist-zzqq1234.com&output=json",
+      "status": 200,
+      "body": "[]"
+    }
+  ]
+}
