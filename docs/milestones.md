@@ -79,4 +79,4 @@ Started with `DNS_URL=http://127.0.0.1:9/ BACKEND_PORT=8011 python -m backend.ap
 `{"error":"all sources failed", ... "error":{"code":"upstream_error","message":"could not reach Google DNS: ConnectionError"}}`.
 
 ### Pull request
-_filled in after it is opened_
+#2 "Milestone 1: thinnest slice (Google DNS, Flask backend, Streamlit page)": https://github.com/NewCooDooer/ioc-simple-dns/pull/2
