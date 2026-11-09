@@ -158,3 +158,12 @@ def test_the_papervinegames_case_scores_60_and_15_with_crtsh_in_error():
     }
     assessment = add_scores(sources, TODAY)
     assert assessment["average"] == 38 and assessment["verdict"] == "undetermined"
+
+
+def test_scoring_does_not_change_the_original_blocks():
+    """Cached results are shared between requests, so scoring must work on copies and leave the originals alone."""
+    originals = sample_sources()
+    given = {key: block for key, block in originals.items()}
+    add_scores(given, TODAY)
+    for block in originals.values():
+        assert "score" not in block and "score_reason" not in block

@@ -347,9 +347,8 @@ Each time the code was restored and all tests passed again.
 ### Pull request
 #3 "Milestone 2: three sources and recorded offline tests": https://github.com/NewCooDooer/ioc-simple-dns/pull/3
 
-
 ## Milestone 3: scores and verdict
-- Branches: `add-scoring-and-verdict` (merged). Same stack as Milestone 2; new file `backend/scoring.py`.
+- Branch: `add-scoring-and-verdict` (merged). Same stack as Milestone 2; new file `backend/scoring.py`.
 - What it does: each source's result becomes a 0-100 score (0 = definitely malware, 100 = definitely not malware); the scores are averaged and rounded;
   the average gives one of three verdicts (0-40 likely malware, 41-60 undetermined, 61-100 likely safe). Rules and reasons: `design.md` section 4a.
 - Decisions made with the project owner: three verdicts instead of the five first requested; a source that answers "not found" scores 50; a source with an
@@ -421,3 +420,57 @@ more than undetermined.", a table of the scores with a reason each (crt.sh: "no 
 
 ### Pull request
 #10 "Milestone 3: per-source scores, average and three-way verdict": https://github.com/NewCooDooer/ioc-simple-dns/pull/10
+
+## Milestone 4: caching
+- Branch: `feat/caching`
+- In memory only (`backend/cache.py`); no new dependency; still no async and no database.
+
+### Definition of done (design.md section 9)
+| Check | Result |
+|---|---|
+| Each source has its own expiry, with reasons; Google follows its `Cache-Control` | yes, design.md section 11; evidence 1 |
+| An error is never cached; "not found" is, for less time | yes, `tests/test_cache.py` |
+| Spellings of one IOC share an entry; two IOCs never do; the key holds no secret | yes, `tests/test_cache.py` |
+| A user can tell cached from fresh | yes, `X-Cache-Age-<source>` response headers (design.md section 4); the body is unchanged; the page shows the age |
+| Existing tests keep their checks and pass; new tests cover hit, miss, expiry, uncached error, offline | yes: 53 passed (the original 36 plus 17 new); the only change to existing files is a fixture that empties the cache before each test |
+| Fixed run of 20 or more lookups, counted before and after, no real quota | yes, evidence 2 |
+| Merged to `main` through a pull request the owner reviews | **not yet: no pull request has been opened** |
+
+### Evidence 1: what the sources said (checked 2026-11-06)
+- Google APIs Terms section 5e: no "cached copies longer than permitted by the cache header". One real request each showed
+  `Cache-Control: private, max-age=300` for `example.com` (A) and `max-age=900` for a name that does not exist.
+- rdap.org: 10 requests per 10 s then 429; nothing about caching; its 302 says `public, max-age=28800`. The registry reply (rdap.verisign.com) sent no cache header.
+- crt.sh: nothing on its own pages; the operator's 2020 post says 60 requests per IP per minute. A report of 5 per minute is unverified.
+- Those four requests were the only real network use; the fixed run and the tests send none.
+
+### Evidence 2: the fixed run (`python bench/run_benchmark.py before|after|compare`)
+27 lookups: six spellings of `example.com`, repeats of three more names, a name that does not exist (three times), a name whose crt.sh lookup fails (three times),
+two invalid inputs, and a closing repeat pass. A fake web replays the recordings; sockets are blocked. "Before" was run on the code without the cache (the new files set aside
+and the changed ones stashed), with the same fake web as "after".
+
+| Source | Before | After |
+|---|---|---|
+| Google DNS | 109 | 26 |
+| RDAP (redirect hop included) | 50 | 12 |
+| crt.sh | 25 | 8 |
+| **Total** | **184** | **46** |
+
+Both figures were worked out by hand first and matched the run (for example after: 26 DNS = 4 known names x 5, the failing-crt.sh name x 5, the unknown name x 1;
+crt.sh 8 = 4 known names, the unknown name, and 3 uncached errors). `compare` also checked that every answer is unchanged (the body has no cache fields; the cache is reported in headers).
+The run does not move time, so expiry is covered by the tests.
+
+### Checks that the tests really catch problems (breaking the code on purpose)
+| I broke... | Tests that failed |
+|---|---|
+| the cache so it stores errors | `test_a_crtsh_502_is_not_cached`, `test_the_cache_refuses_errors_and_zero_lifetimes`, `test_not_found_is_cached_but_for_less_time` |
+| expiry (entries never expire) | the three expiry tests |
+| the key (ignores the source) | 13 tests, including three of the original ones |
+| DNS (ignores `Cache-Control`, keeps 1 hour) | `test_dns_is_kept_for_the_time_in_googles_cache_control_header`, `test_dns_without_a_cache_control_header_is_not_kept` |
+
+Each time the code was restored (checked byte for byte) and all the tests passed again (52 at the time of these checks).
+
+### Limits to know
+- The cache lives in one backend process and is emptied on restart.
+- The `ttl` inside cached DNS records is Google's value at fetch time, not counted down; the `X-Cache-Age-<source>` header says how old the result is.
+- The benchmark measures requests that would reach each source from a fixed list; it does not predict real-world savings.
+

@@ -73,9 +73,28 @@ def show_assessment(body):
     st.caption("This verdict is a rough guess from three weak signals, not a finding. Check the facts below before acting on it.")
 
 
-def show_source(key, block):
-    """Show one source's result: its data, or 'not found', or its error."""
+def describe_age(seconds):
+    """Turn a number of seconds into a short phrase such as '42 s', '7 min' or '2 h'."""
+    if seconds < 60:
+        return f"{seconds} s"
+    if seconds < 3600:
+        return f"{seconds // 60} min"
+    return f"{seconds // 3600} h"
+
+
+def cache_age(response, key):
+    """Seconds since this source's result was fetched, read from the backend's X-Cache-Age-<source> header.
+    None if the header is missing, which means the result was just fetched."""
+    value = response.headers.get(f"X-Cache-Age-{key}")
+    return int(value) if value is not None else None
+
+
+def show_source(key, block, age=None):
+    """Show one source's result: its data, or 'not found', or its error. `age` is set only for a cached result."""
     st.subheader(TITLES.get(key, key))
+    # A cached result can be out of date, so the analyst must be able to see that it is not fresh.
+    if age is not None:
+        st.caption(f"Cached result, fetched {describe_age(age)} ago. It may have changed since.")
     if block["status"] == "ok":
         st.success("OK: the source answered with data.")
         if key == "dns":
@@ -130,6 +149,6 @@ if submitted:
         st.markdown(f"### Results for `{body['ioc']['value']}`")
         show_assessment(body)
         for key, block in body["sources"].items():
-            show_source(key, block)
+            show_source(key, block, cache_age(response, key))
         with st.expander("Raw JSON from the backend"):
             st.json(body)
