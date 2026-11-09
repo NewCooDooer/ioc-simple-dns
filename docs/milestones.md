@@ -347,3 +347,77 @@ Each time the code was restored and all tests passed again.
 ### Pull request
 #3 "Milestone 2: three sources and recorded offline tests": https://github.com/NewCooDooer/ioc-simple-dns/pull/3
 
+
+## Milestone 3: scores and verdict
+- Branches: `add-scoring-and-verdict` (merged). Same stack as Milestone 2; new file `backend/scoring.py`.
+- What it does: each source's result becomes a 0-100 score (0 = definitely malware, 100 = definitely not malware); the scores are averaged and rounded;
+  the average gives one of three verdicts (0-40 likely malware, 41-60 undetermined, 61-100 likely safe). Rules and reasons: `design.md` section 4a.
+- Decisions made with the project owner: three verdicts instead of the five first requested; a source that answers "not found" scores 50; a source with an
+  error has no score and is left out of the average; **a firm verdict needs all three sources** (fewer than 3 scores always gives undetermined).
+
+### Definition of done (design.md section 9)
+| Check | Result |
+|---|---|
+| Every source has `score` and `score_reason`; the answer has `assessment`; old fields unchanged | yes, evidence 1 |
+| Band edges (40/41, 60/61), each source's rules, a failing source, the all-failed case tested, with 3, 2 and 1 sources used | yes, evidence 2 |
+| The page shows the three scores, the average, the verdict and the caveat | yes, checked in the browser (evidence 3) |
+| `design.md` and the README match the code | yes |
+| Merged into `main` through a pull request | yes, after an approving review by the collaborator |
+
+### Evidence 1: a real request (data blocks left out to keep it short)
+`curl -s http://127.0.0.1:8010/api/v1/domain/example.com`, run on 2026-11-09:
+```json
+{
+  "ioc": {
+    "type": "domain",
+    "input": "example.com",
+    "value": "example.com"
+  },
+  "sources": {
+    "dns": {
+      "status": "ok",
+      "score": 60,
+      "score_reason": "the name resolves to an address"
+    },
+    "rdap": {
+      "status": "ok",
+      "score": 90,
+      "score_reason": "registered 5 years or more ago"
+    },
+    "crtsh": {
+      "status": "ok",
+      "score": 75,
+      "score_reason": "first certificate issued 1 year or more ago"
+    }
+  },
+  "assessment": {
+    "score_min": 0,
+    "score_max": 100,
+    "average": 75,
+    "sources_used": 3,
+    "sources_total": 3,
+    "verdict": "likely_safe",
+    "verdict_label": "Likely safe",
+    "verdict_note": null
+  }
+}
+```
+
+### Evidence 2: tests with the network off
+```
+$ pytest -q
+56 passed, 1 warning
+```
+Includes the case that started the "all three sources" rule: scores 60 and 15 with crt.sh in error average 38, which alone would say "likely malware",
+but with only 2 of 3 sources the verdict is capped at undetermined.
+
+### Evidence 3: the page
+On a run where crt.sh returned HTTP 502, the page showed **Undetermined**, average 75 from 2 of 3 sources, the warning "Only 2 of 3 sources gave a score, so the verdict cannot be
+more than undetermined.", a table of the scores with a reason each (crt.sh: "no score"), and the caveat "This verdict is a rough guess from three weak signals, not a finding."
+
+### Observations
+- crt.sh failing often means firm verdicts are rarer than they look; the same name gave a 2-of-3 run and a 3-of-3 run on the same day.
+- The scores are all about age, so a long-lived name that was taken over would still look safe. The verdict is a hint, not a finding.
+
+### Pull request
+#10 "Milestone 3: per-source scores, average and three-way verdict": https://github.com/NewCooDooer/ioc-simple-dns/pull/10
