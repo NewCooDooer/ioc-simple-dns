@@ -1,9 +1,11 @@
 """The backend: a small Flask web server.  Start it with:  python -m backend.app"""
 
 import os
+from datetime import datetime, timezone
 
 from flask import Flask, jsonify
 
+from backend.scoring import add_scores
 from backend.sources import ask_crtsh, ask_dns, ask_rdap
 from backend.validate import check_name
 
@@ -51,9 +53,11 @@ def domain(name):
     if all_failed:
         return error_answer(502, "all sources failed", name, {"sources": sources})
 
+    # Step 4: score each source, average the scores and pick a verdict (the sources dictionary gets "score" fields added).
     answer = {
         "ioc": {"type": "domain", "input": name, "value": clean_name},
         "sources": sources,
+        "assessment": add_scores(sources, datetime.now(timezone.utc).date()),
     }
     return jsonify(answer)
 
