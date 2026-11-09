@@ -1,6 +1,6 @@
 # IOC Enrichment Portal (DNS names), simple version: design
 
-Status: Milestone 3 (scoring) · Written 2026-11-06, updated 2026-11-09 · Owner: Evan Murphy
+Status: Milestone 4 (caching) · Written 2026-11-06, updated 2026-11-09 · Owner: Evan Murphy
 
 This is a deliberately **small** version of an existing, finished project (https://github.com/NewCooDooer/ioc-enrichment-portal-dns).
 It meets the same assignment specs with the simplest code possible: plain functions, no `async`, no extras.
@@ -20,7 +20,7 @@ Other programs may call the backend later, so **the API contract (section 4) is 
 The sources report facts. From Milestone 3 the backend also turns those facts into a score and a **verdict** (section 4a). The verdict is a rough guess made from three
 weak signals, **not a finding**: the page and the API must always present it that way, and it never replaces the facts underneath.
 
-**Out of scope for this version:** async code, threads, retries, caching, a database, accounts, bulk lookups, containers, a blocking guard for private names
+**Out of scope for this version:** async code, threads, retries, a database, accounts, bulk lookups, containers, a blocking guard for private names
 (a later course topic), and any theme or mascot.
 
 ## 2. Architecture
@@ -31,6 +31,7 @@ Browser -> Streamlit page (port 8510) --HTTP/JSON--> Flask backend (port 8010) -
 
 - Two separate Python programs: `backend/` and `frontend/`. The page gets **all** its data from the backend and never calls a source.
 - The backend checks the name, asks the three sources **one after another** (plain functions, no concurrency), and returns one JSON answer.
+- Before asking a source, the backend looks in a small in-memory cache (section 11). A fresh copy is returned without any outbound request.
 - Cost of that simplicity: a lookup takes the **sum** of the three sources. crt.sh alone can take up to a minute, so the page shows a "please wait" message.
 - Ports: backend `BACKEND_PORT` (default 8010); the page finds the backend with `BACKEND_URL` (default `http://127.0.0.1:8010`) and runs on `--server.port` (8510).
   Both programs listen on `127.0.0.1` only.
@@ -46,6 +47,7 @@ Browser -> Streamlit page (port 8510) --HTTP/JSON--> Flask backend (port 8010) -
 | Tests (Milestone 2) | **pytest + responses + pytest-socket** | `responses` replays recorded answers through `requests`; `pytest-socket` makes any real network call fail. |
 | Recordings | JSON files saved by `record.py` | Readable; the recorder saves status and body only, never headers, so no key can leak. |
 | Settings | environment variables | `BACKEND_PORT`, `BACKEND_URL`, plus three optional source addresses (only to make a source fail on purpose). |
+| Cache (Milestone 4) | a plain dictionary in memory, guarded by a lock | No new dependency and no database. Lost on restart, which is acceptable for a cache (section 11). |
 | Containers | none | Allowed (at most two); fewer moving parts. |
 | Identification | a `User-Agent` header saying `ioc-simple-dns/0.1 (training project)` | Polite to public services. It deliberately contains no personal e-mail address. |
 | Python | 3.11 or newer (developed on 3.14.7) | |
@@ -152,9 +154,9 @@ Non-English letters become punycode (`bücher.de` becomes `xn--bcher-kva.de`). T
 
 | Source | Key | Limit | Terms and notes |
 |---|---|---|---|
-| **Google Public DNS** `https://dns.google/resolve` ([docs](https://developers.google.com/speed/public-dns/docs/doh/json)) | no | Default **1500 queries/s per client IP** with short bursts allowed ([ISP page](https://developers.google.com/speed/public-dns/docs/isp)); its [troubleshooting page](https://developers.google.com/speed/public-dns/docs/troubleshooting) says 1000. Neither mentions DNS over HTTPS specifically. | Free, **no SLA**. Google logs the queried name and your IP for 24 to 48 hours ([privacy](https://developers.google.com/speed/public-dns/privacy)). |
-| **RDAP** `https://rdap.org/domain/{name}` ([about](https://about.rdap.org/)) | no | **10 requests per 10 s**, then 429 | 302 redirects to the registry (must be followed); 404 = unknown, or a top-level domain it does not cover (for example `.de`, `.io`); 403 = blocked for abuse. No formal terms. |
-| **crt.sh** `https://crt.sh/?q={name}&output=json` | no | None published | No official terms found. Run by Sectigo. Unreliable: it often answers HTTP 502 and can take up to a minute (it timed out at 45 s on 2026-11-06). |
+| **Google Public DNS** `https://dns.google/resolve` ([docs](https://developers.google.com/speed/public-dns/docs/doh/json)) | no | Default **1500 queries/s per client IP** with short bursts allowed ([ISP page](https://developers.google.com/speed/public-dns/docs/isp)); its [troubleshooting page](https://developers.google.com/speed/public-dns/docs/troubleshooting) says 1000. Neither mentions DNS over HTTPS specifically. | Free, **no SLA**. Google logs the queried name and your IP for 24 to 48 hours ([privacy](https://developers.google.com/speed/public-dns/privacy)). **Caching:** the [Google APIs Terms](https://developers.google.com/terms) (section 5e) forbid keeping cached copies "longer than permitted by the cache header". |
+| **RDAP** `https://rdap.org/domain/{name}` ([about](https://about.rdap.org/)) | no | **10 requests per 10 s**, then 429 | 302 redirects to the registry (must be followed); 404 = unknown, or a top-level domain it does not cover (for example `.de`, `.io`); 403 = blocked for abuse. No formal terms and nothing about caching (its 302 reply is marked `public, max-age=28800`). |
+| **crt.sh** `https://crt.sh/?q={name}&output=json` | no | None on its own pages. **Unconfirmed:** a 2020 post by the operator says requests are throttled at 60 per IP per minute ([post](https://groups.google.com/g/crtsh/c/NZJntKrBdmg)), and a later report says 5 per minute; no current source confirms either. | No official terms found. Run by Sectigo. Unreliable: it often answers HTTP 502 and can take up to a minute (it timed out at 45 s on 2026-11-06). |
 
 Timeouts: Google and RDAP 10 s, crt.sh 60 s; the page waits up to 100 s. Lookups are **not private**: every name typed is sent to these outside services.
 
@@ -198,7 +200,74 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 3. The page shows the three scores, the average, the verdict and the caveat.
 4. `design.md` and the README match the code; merged to `main` through a pull request.
 
+**Milestone 4: caching.** Done when:
+1. Each source has its own expiry, with the reason written in section 11, and Google DNS follows its `Cache-Control` header.
+2. An error is never cached; "not found" is, for less time.
+3. One IOC typed differently shares one entry; two IOCs never do; the key holds the source and never a secret.
+4. A user can tell a cached result from a fresh one (the `X-Cache-Age-<source>` headers), and the body does not change; the headers are documented in section 11, as an addition outside the API contract.
+5. The existing tests keep their checks and pass; new tests show a hit, a miss, an expiry and an uncached error, all with the network off.
+6. A fixed run of at least 20 lookups is counted before and after, per source, without real network access.
+7. Merged to `main` through a pull request that the owner reviews.
+
 ## 10. How this differs from the full version
 
 Plain Flask and `requests` instead of FastAPI and async code; plain dictionaries instead of model classes; three small backend files instead of fifteen;
 no themed interface; sources asked one after another instead of at the same time. Same contract, same three sources, same rules about facts and failures.
+
+## 11. Caching (Milestone 4)
+
+**Why.** One lookup of a known name costs **8 outbound requests**: 5 to Google DNS (one per record type), 2 to RDAP (rdap.org redirects to the registry) and 1 to crt.sh.
+RDAP allows only 10 requests per 10 s, crt.sh is slow, throttled and often fails, and an analyst often looks up the same IOC more than once.
+
+**What is cached.** Each source's `ok` and `not_found` result, separately, so one failing source never discards the others' answers.
+The store is `backend/cache.py`; the `ask_...` functions in `backend/sources.py` look in it first and only call the source on a miss.
+
+**Expiry per source** (sources checked on their own pages and, for headers, with one real request each on 2026-11-06):
+
+| Source | `ok` kept for | `not_found` kept for | Reasons: how often the data changes, how fresh an analyst needs it, how tight the limits are |
+|---|---|---|---|
+| Google DNS | the **smallest `max-age`** of the 5 replies (300 s seen for `example.com`) | the reply's `max-age` (900 s seen) | **Terms decide:** Google APIs Terms section 5e forbid keeping copies longer than the cache header allows. Google's header follows the record's own TTL, so DNS data is never kept past the time its owner declared. Limits are generous (about 1500 queries/s), so freshness, not quota, is what matters. A reply with **no** `max-age` is not kept at all (expiry 0): without the header there is no permission to keep it. Google sends `private`, which forbids shared proxies; this backend is Google's single client, not a proxy, so it may keep the answer for `max-age`. |
+| RDAP | **1 hour** | **5 minutes** | Registrar, expiry date and name servers change over days or months, so an hour costs little accuracy, and the limit (10 requests per 10 s, then 429) is tight. "Not found" is kept briefly because a name can be registered at any moment and newly registered names are what analysts look for. No terms or caching rules exist on rdap.org's pages. |
+| crt.sh | **6 hours** | **10 minutes** | Certificate history only grows, so an old answer is incomplete, never wrong. crt.sh is the slowest source (up to 60 s), is throttled per IP and often answers 502, so a hit saves the most. "Not found" is short because a new name usually gets its first certificate soon. No terms exist on its pages. |
+| any source, `error` | **never** | | A timeout, a 429, a 5xx or an unreadable answer is not an answer (below). |
+
+No source rules caching out, so no source has an expiry of zero, except Google replies that lack a `max-age`.
+
+**Never cache an error.** `cache.store()` itself refuses any result whose status is `error`, so a slip in one source's code cannot cache a timeout, a 429 or a 502.
+(A "missing key" error cannot happen in this version, since no source uses a key; it would be an `error` and so not cached.) "Not found" is an answer and is cached, for the shorter times above.
+
+**The key** is `(source, clean name)`. The name is the output of `check_name`: trimmed, one trailing dot dropped, lowercased, punycode. So `Example.COM`, ` example.com ` and `example.com.`
+share one entry, and two different names never do. It contains only the source's label and the name, never a secret.
+This version supports only DNS names (IP addresses, hashes and URLs are rejected with 400), so case, spaces and the trailing dot are the spellings that matter.
+
+**Storage.** A dictionary in memory with a lock (the Flask development server answers several requests at once). Reasons: simplest possible, no new dependency, no database (a hard constraint).
+Costs: it is emptied when the backend restarts and is not shared between two backend processes. It holds at most 5000 entries (expired ones are dropped first, then the oldest).
+
+**Telling cached from fresh.** The response headers below are an **addition made in Milestone 4. They are not part of the API contract (section 4)**, which is unchanged:
+the JSON body is exactly as in Milestone 2, and every field and status code is as before. A source that came from the cache is reported in a header on the 200 response:
+
+| Header | Meaning |
+|---|---|
+| `X-Cache-Age-dns`, `X-Cache-Age-rdap`, `X-Cache-Age-crtsh` | present only when that source's result came from the cache; the value is the number of seconds since it was fetched |
+
+A source with no such header was just fetched. Example: `X-Cache-Age-rdap: 412` means the `rdap` block is a copy fetched 412 s ago. An error is never cached, so an error block never has a header, and the 502 response never has any.
+The `ttl` numbers inside DNS records are Google's values at fetch time; they are **not** counted down, so use the header's age.
+The page reads these headers and prints "Cached result, fetched 7 min ago. It may have changed since."
+The news goes in headers, not in the body, so the body (the product) keeps exactly its Milestone 2 shape and the contract stays untouched. The cost: a client that reads only the body cannot see that a result is cached.
+Why the expiry alone is not enough: results can be kept for up to 6 hours, and a cached "clean" or "not found" can be wrong an hour later (the name gets registered or gets a certificate).
+An analyst deciding something from the result must be able to see how old it is.
+
+**What did not change.** The body, every existing field, status code and the order of the sources. Invalid input still returns 400 before the cache or any source is touched.
+The 502 response has no cache headers, because an error is never cached.
+
+**Measured.** `bench/run_benchmark.py` sends the same 27 lookups (repeats, six spellings of one name, a name that does not exist, a name whose crt.sh lookup fails, two invalid inputs)
+through the backend with a fake web that replays the recordings (no real requests, sockets blocked) and counts outbound requests per source:
+
+| Source | Without cache | With cache |
+|---|---|---|
+| Google DNS | 109 | 26 |
+| RDAP (redirect hop included) | 50 | 12 |
+| crt.sh | 25 | 8 |
+| **Total** | **184** | **46** |
+
+The run does not move time, so expiry is shown by the tests in `tests/test_cache.py` (a fake clock), not by the run.

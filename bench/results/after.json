@@ -1,0 +1,2513 @@
+{
+  "label": "after",
+  "lookups_made": 27,
+  "requests_per_source": {
+    "dns": 26,
+    "rdap": 12,
+    "crtsh": 8
+  },
+  "requests_total": 46,
+  "lookups": [
+    {
+      "typed": "example.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.com",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.com",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "EXAMPLE.COM",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "EXAMPLE.COM",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": " example.com ",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": " example.com ",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.com.",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.com.",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "Example.Com.",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "Example.Com.",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.org",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.org",
+          "value": "example.org"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.org",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.org",
+          "value": "example.org"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "EXAMPLE.ORG",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "EXAMPLE.ORG",
+          "value": "example.org"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.net",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.net",
+          "value": "example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.net.",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.net.",
+          "value": "example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "github.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "github.com",
+          "value": "github.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "github.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "github.com",
+          "value": "github.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "GitHub.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "GitHub.com",
+          "value": "github.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "this-does-not-exist-zzqq1234.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "this-does-not-exist-zzqq1234.com",
+          "value": "this-does-not-exist-zzqq1234.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "not_found",
+            "data": null
+          },
+          "rdap": {
+            "status": "not_found",
+            "data": null
+          },
+          "crtsh": {
+            "status": "not_found",
+            "data": null
+          }
+        }
+      }
+    },
+    {
+      "typed": "this-does-not-exist-zzqq1234.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "this-does-not-exist-zzqq1234.com",
+          "value": "this-does-not-exist-zzqq1234.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "not_found",
+            "data": null
+          },
+          "rdap": {
+            "status": "not_found",
+            "data": null
+          },
+          "crtsh": {
+            "status": "not_found",
+            "data": null
+          }
+        }
+      }
+    },
+    {
+      "typed": "THIS-DOES-NOT-EXIST-ZZQQ1234.COM",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "THIS-DOES-NOT-EXIST-ZZQQ1234.COM",
+          "value": "this-does-not-exist-zzqq1234.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "not_found",
+            "data": null
+          },
+          "rdap": {
+            "status": "not_found",
+            "data": null
+          },
+          "crtsh": {
+            "status": "not_found",
+            "data": null
+          }
+        }
+      }
+    },
+    {
+      "typed": "flaky.example.net",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "flaky.example.net",
+          "value": "flaky.example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "error",
+            "data": null,
+            "error": {
+              "code": "upstream_error",
+              "message": "crt.sh returned HTTP 502"
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "flaky.example.net",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "flaky.example.net",
+          "value": "flaky.example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "error",
+            "data": null,
+            "error": {
+              "code": "upstream_error",
+              "message": "crt.sh returned HTTP 502"
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "flaky.example.net",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "flaky.example.net",
+          "value": "flaky.example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "error",
+            "data": null,
+            "error": {
+              "code": "upstream_error",
+              "message": "crt.sh returned HTTP 502"
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "10.0.0.1",
+      "http_status": 400,
+      "body": {
+        "error": "not a valid DNS name: 10.0.0.1 (IP addresses are not accepted)",
+        "input": "10.0.0.1"
+      }
+    },
+    {
+      "typed": "not a domain",
+      "http_status": 400,
+      "body": {
+        "error": "not a valid DNS name: not a domain (URLs, ports, e-mail addresses and spaces are not accepted)",
+        "input": "not a domain"
+      }
+    },
+    {
+      "typed": "example.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.com",
+          "value": "example.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.org",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.org",
+          "value": "example.org"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "github.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "github.com",
+          "value": "github.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "example.net",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "example.net",
+          "value": "example.net"
+        },
+        "sources": {
+          "dns": {
+            "status": "ok",
+            "data": {
+              "resolver": "dns.google",
+              "rcode": "NOERROR",
+              "A": [
+                {
+                  "value": "104.20.23.154",
+                  "ttl": 300
+                },
+                {
+                  "value": "172.66.147.243",
+                  "ttl": 300
+                }
+              ],
+              "AAAA": [
+                {
+                  "value": "2606:4700:10::6814:179a",
+                  "ttl": 300
+                },
+                {
+                  "value": "2606:4700:10::ac42:93f3",
+                  "ttl": 300
+                }
+              ],
+              "NS": [
+                {
+                  "value": "elliott.ns.cloudflare.com.",
+                  "ttl": 21600
+                },
+                {
+                  "value": "hera.ns.cloudflare.com.",
+                  "ttl": 21600
+                }
+              ],
+              "MX": [
+                {
+                  "value": "0 .",
+                  "ttl": 56
+                }
+              ],
+              "TXT": [
+                {
+                  "value": "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9",
+                  "ttl": 300
+                },
+                {
+                  "value": "v=spf1 -all",
+                  "ttl": 300
+                }
+              ]
+            }
+          },
+          "rdap": {
+            "status": "ok",
+            "data": {
+              "registrar": "RESERVED-Internet Assigned Numbers Authority",
+              "registered": "1995-08-14T04:00:00Z",
+              "expires": "2027-08-13T04:00:00Z",
+              "last_changed": "2026-08-14T08:01:43Z",
+              "statuses": [
+                "client delete prohibited",
+                "client transfer prohibited",
+                "client update prohibited"
+              ],
+              "nameservers": [
+                "elliott.ns.cloudflare.com",
+                "hera.ns.cloudflare.com"
+              ],
+              "registry_url": "https://rdap.verisign.com/com/v1/domain/example.com"
+            }
+          },
+          "crtsh": {
+            "status": "ok",
+            "data": {
+              "certificate_count": 42,
+              "first_seen": "2014-11-06T00:00:00",
+              "last_seen": "2026-09-26T22:49:11",
+              "issuers": [
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV E36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36",
+                "C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA OV R36",
+                "C=GB, ST=Cymru, O=AS207960 Cyfyngedig, OU=AS207960 Department of Random Numbers, CN=AS207960 Test CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Organization Validation Secure Server CA",
+                "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo RSA Domain Validation Secure Server CA",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing ECC CA 1",
+                "C=US, O=\"CLOUDFLARE, INC.\", CN=Cloudflare TLS Issuing RSA CA 1",
+                "C=US, O=\"thawte, Inc.\", CN=thawte SSL CA - G2",
+                "C=US, O=DigiCert Inc, CN=DigiCert Global G2 TLS RSA SHA256 2020 CA1"
+              ],
+              "names": [
+                "*.example.com",
+                "AS207960 Test Intermediate - example.com",
+                "dev.example.com",
+                "example.com",
+                "m.example.com",
+                "m.testexample.com",
+                "products.example.com",
+                "support.example.com",
+                "www.example.com"
+              ],
+              "names_truncated": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "typed": "this-does-not-exist-zzqq1234.com",
+      "http_status": 200,
+      "body": {
+        "ioc": {
+          "type": "domain",
+          "input": "this-does-not-exist-zzqq1234.com",
+          "value": "this-does-not-exist-zzqq1234.com"
+        },
+        "sources": {
+          "dns": {
+            "status": "not_found",
+            "data": null
+          },
+          "rdap": {
+            "status": "not_found",
+            "data": null
+          },
+          "crtsh": {
+            "status": "not_found",
+            "data": null
+          }
+        }
+      }
+    }
+  ]
+}
