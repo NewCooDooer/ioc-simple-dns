@@ -65,7 +65,9 @@ def _make_room(now):
     for key in [key for key, entry in _entries.items() if now >= entry[1]]:
         del _entries[key]
     if len(_entries) >= MAX_ENTRIES:
-        del _entries[next(iter(_entries))]  # dictionaries remember insertion order, so this is the oldest
+        # Oldest *inserted* entry (dictionaries keep insertion order), not the least recently used one.
+        # That is good enough at this size; a true LRU would need to reorder entries on every read.
+        del _entries[next(iter(_entries))]
 
 
 def clear_cache():

@@ -115,6 +115,8 @@ python bench/run_benchmark.py compare   # both tables, and a check that every an
 It sends the same 27 lookups through the backend (repeats, different spellings of one name, a name that does not exist, a failing crt.sh, invalid input).
 A fake web replays the recordings and sockets are blocked, so **no real request is sent and no quota is spent**. It counts the requests each source would have received.
 
+The two files in `bench/results/` are **generated** by the commands above (about 5,000 lines of per-request output); do not edit them by hand, rerun the commands instead.
+
 To record fresh real answers (rarely needed; crt.sh may need many retries): `python record.py`, or just one case, for example `python record.py crtsh_error`.
 
 ## Files

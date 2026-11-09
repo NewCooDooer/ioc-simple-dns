@@ -80,15 +80,6 @@ Every source block has `status`, `data` and, only on error, `error`:
 | `not_found` | the source answered "I know nothing about this name" |
 | `error` | we could not get an answer (`error.code` is `timeout`, `upstream_error` or `invalid_response`) |
 
-**Added in Milestone 3: response headers, and no new body fields.** The JSON body is exactly as in Milestone 2. A source that came from the cache is reported in a header on the 200 response:
-
-| Header | Meaning |
-|---|---|
-| `X-Cache-Age-dns`, `X-Cache-Age-rdap`, `X-Cache-Age-crtsh` | present only when that source's result came from the cache; the value is the number of seconds since it was fetched |
-
-A source with no such header was just fetched. Example: `X-Cache-Age-rdap: 412` means the `rdap` block is a copy fetched 412 s ago. An error is never cached, so an error block never has a header, and the 502 response never has any.
-The `ttl` numbers inside DNS records are Google's values at fetch time; they are **not** counted down, so use the header's age. Why a header and not a field: section 11.
-
 **`not_found` is an answer; `error` is not.** A failed source never changes the status code. The other sources still return.
 In Milestone 1 only `dns` was present; Milestone 2 adds `rdap` and `crtsh` without renaming anything. The sources are asked in the order dns, rdap, crtsh.
 
@@ -115,7 +106,7 @@ Non-English letters become punycode (`bücher.de` becomes `xn--bcher-kva.de`). T
 |---|---|---|---|
 | **Google Public DNS** `https://dns.google/resolve` ([docs](https://developers.google.com/speed/public-dns/docs/doh/json)) | no | Default **1500 queries/s per client IP** with short bursts allowed ([ISP page](https://developers.google.com/speed/public-dns/docs/isp)); its [troubleshooting page](https://developers.google.com/speed/public-dns/docs/troubleshooting) says 1000. Neither mentions DNS over HTTPS specifically. | Free, **no SLA**. Google logs the queried name and your IP for 24 to 48 hours ([privacy](https://developers.google.com/speed/public-dns/privacy)). **Caching:** the [Google APIs Terms](https://developers.google.com/terms) (section 5e) forbid keeping cached copies "longer than permitted by the cache header". |
 | **RDAP** `https://rdap.org/domain/{name}` ([about](https://about.rdap.org/)) | no | **10 requests per 10 s**, then 429 | 302 redirects to the registry (must be followed); 404 = unknown, or a top-level domain it does not cover (for example `.de`, `.io`); 403 = blocked for abuse. No formal terms and nothing about caching (its 302 reply is marked `public, max-age=28800`). |
-| **crt.sh** `https://crt.sh/?q={name}&output=json` | no | None on its own pages. The operator said in 2020 that requests are throttled at **60 per IP per minute** ([post](https://groups.google.com/g/crtsh/c/NZJntKrBdmg)); a later report of 5 per minute is unverified. | No official terms found. Run by Sectigo. Unreliable: it often answers HTTP 502 and can take up to a minute (it timed out at 45 s on 2026-11-06). |
+| **crt.sh** `https://crt.sh/?q={name}&output=json` | no | None on its own pages. **Unconfirmed:** a 2020 post by the operator says requests are throttled at 60 per IP per minute ([post](https://groups.google.com/g/crtsh/c/NZJntKrBdmg)), and a later report says 5 per minute; no current source confirms either. | No official terms found. Run by Sectigo. Unreliable: it often answers HTTP 502 and can take up to a minute (it timed out at 45 s on 2026-11-06). |
 
 Timeouts: Google and RDAP 10 s, crt.sh 60 s; the page waits up to 100 s. Lookups are **not private**: every name typed is sent to these outside services.
 
@@ -157,7 +148,7 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 1. Each source has its own expiry, with the reason written in section 11, and Google DNS follows its `Cache-Control` header.
 2. An error is never cached; "not found" is, for less time.
 3. One IOC typed differently shares one entry; two IOCs never do; the key holds the source and never a secret.
-4. A user can tell a cached result from a fresh one (the `X-Cache-Age-<source>` headers), and the body does not change; the headers are documented in section 4.
+4. A user can tell a cached result from a fresh one (the `X-Cache-Age-<source>` headers), and the body does not change; the headers are documented in section 11, as an addition outside the API contract.
 5. The existing tests keep their checks and pass; new tests show a hit, a miss, an expiry and an uncached error, all with the network off.
 6. A fixed run of at least 20 lookups is counted before and after, per source, without real network access.
 7. Merged to `main` through a pull request that the owner reviews.
@@ -196,8 +187,17 @@ This version supports only DNS names (IP addresses, hashes and URLs are rejected
 **Storage.** A dictionary in memory with a lock (the Flask development server answers several requests at once). Reasons: simplest possible, no new dependency, no database (a hard constraint).
 Costs: it is emptied when the backend restarts and is not shared between two backend processes. It holds at most 5000 entries (expired ones are dropped first, then the oldest).
 
-**Telling cached from fresh.** The backend sends an `X-Cache-Age-<source>` header for each cached source (section 4), and the page prints "Cached result, fetched 7 min ago. It may have changed since."
-The news goes in headers, not in the body, so the body (the product) keeps exactly its Milestone 2 shape. The cost: a client that reads only the body cannot see that a result is cached.
+**Telling cached from fresh.** The response headers below are an **addition made in Milestone 3. They are not part of the API contract (section 4)**, which is unchanged:
+the JSON body is exactly as in Milestone 2, and every field and status code is as before. A source that came from the cache is reported in a header on the 200 response:
+
+| Header | Meaning |
+|---|---|
+| `X-Cache-Age-dns`, `X-Cache-Age-rdap`, `X-Cache-Age-crtsh` | present only when that source's result came from the cache; the value is the number of seconds since it was fetched |
+
+A source with no such header was just fetched. Example: `X-Cache-Age-rdap: 412` means the `rdap` block is a copy fetched 412 s ago. An error is never cached, so an error block never has a header, and the 502 response never has any.
+The `ttl` numbers inside DNS records are Google's values at fetch time; they are **not** counted down, so use the header's age.
+The page reads these headers and prints "Cached result, fetched 7 min ago. It may have changed since."
+The news goes in headers, not in the body, so the body (the product) keeps exactly its Milestone 2 shape and the contract stays untouched. The cost: a client that reads only the body cannot see that a result is cached.
 Why the expiry alone is not enough: results can be kept for up to 6 hours, and a cached "clean" or "not found" can be wrong an hour later (the name gets registered or gets a certificate).
 An analyst deciding something from the result must be able to see how old it is.
 
