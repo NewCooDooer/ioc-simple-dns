@@ -57,6 +57,22 @@ def show_crtsh_data(data):
         st.write("The list is cut short: more names exist.")
 
 
+def show_assessment(body):
+    """Show the three scores, the average and the verdict, with the caveat that it is only a rough guess."""
+    assessment = body["assessment"]
+    st.markdown("### Verdict")
+    st.write(f"**{assessment['verdict_label']}**: average score {assessment['average']} "
+             f"(0 = definitely malware, 100 = definitely not malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
+    if assessment["verdict_note"] is not None:
+        st.warning(assessment["verdict_note"].capitalize() + ".")
+    rows = {}
+    for key, block in body["sources"].items():
+        score = block["score"]
+        rows[TITLES.get(key, key)] = {"Score": "no score" if score is None else score, "Why": block["score_reason"]}
+    st.table(rows)
+    st.caption("This verdict is a rough guess from three weak signals, not a finding. Check the facts below before acting on it.")
+
+
 def describe_age(seconds):
     """Turn a number of seconds into a short phrase such as '42 s', '7 min' or '2 h'."""
     if seconds < 60:
@@ -98,7 +114,7 @@ def show_source(key, block, age=None):
 
 
 st.title("IOC Enrichment Portal: DNS names")
-st.write("Enter a domain name to see what public sources say about it. They report facts; none of them gives a verdict.")
+st.write("Enter a domain name to see what public sources say about it. They report facts; the page turns them into a rough score and verdict.")
 st.warning("Do not enter internal or private names: lookups go to outside services.")
 
 # A form lets the user press Enter as well as click the button.
@@ -131,6 +147,7 @@ if submitted:
         st.error(f"Unexpected answer from the backend: {body.get('error', response.status_code)}")
     else:
         st.markdown(f"### Results for `{body['ioc']['value']}`")
+        show_assessment(body)
         for key, block in body["sources"].items():
             show_source(key, block, cache_age(response, key))
         with st.expander("Raw JSON from the backend"):

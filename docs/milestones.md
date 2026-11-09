@@ -347,7 +347,7 @@ Each time the code was restored and all tests passed again.
 ### Pull request
 #3 "Milestone 2: three sources and recorded offline tests": https://github.com/NewCooDooer/ioc-simple-dns/pull/3
 
-## Milestone 3: caching
+## Milestone 4: caching
 - Branch: `feat/caching`
 - In memory only (`backend/cache.py`); no new dependency; still no async and no database.
 

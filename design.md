@@ -1,6 +1,6 @@
 # IOC Enrichment Portal (DNS names), simple version: design
 
-Status: Milestone 3 (caching) · Written 2026-11-06, updated for Milestone 3 · Owner: Evan Murphy
+Status: Milestone 4 (caching) · Written 2026-11-06, updated 2026-11-09 · Owner: Evan Murphy
 
 This is a deliberately **small** version of an existing, finished project (https://github.com/NewCooDooer/ioc-enrichment-portal-dns).
 It meets the same assignment specs with the simplest code possible: plain functions, no `async`, no extras.
@@ -17,7 +17,8 @@ A SOC analyst types a **DNS name** into a web page and sees what three real, key
 | Which TLS certificates were issued for it? | crt.sh (Certificate Transparency) |
 
 Other programs may call the backend later, so **the API contract (section 4) is the product** and the web page is one client of it.
-The sources report facts. Nothing in this project may call a name "safe" or "malicious".
+The sources report facts. From Milestone 3 the backend also turns those facts into a score and a **verdict** (section 4a). The verdict is a rough guess made from three
+weak signals, **not a finding**: the page and the API must always present it that way, and it never replaces the facts underneath.
 
 **Out of scope for this version:** async code, threads, retries, a database, accounts, bulk lookups, containers, a blocking guard for private names
 (a later course topic), and any theme or mascot.
@@ -46,7 +47,7 @@ Browser -> Streamlit page (port 8510) --HTTP/JSON--> Flask backend (port 8010) -
 | Tests (Milestone 2) | **pytest + responses + pytest-socket** | `responses` replays recorded answers through `requests`; `pytest-socket` makes any real network call fail. |
 | Recordings | JSON files saved by `record.py` | Readable; the recorder saves status and body only, never headers, so no key can leak. |
 | Settings | environment variables | `BACKEND_PORT`, `BACKEND_URL`, plus three optional source addresses (only to make a source fail on purpose). |
-| Cache (Milestone 3) | a plain dictionary in memory, guarded by a lock | No new dependency and no database. Lost on restart, which is acceptable for a cache (section 11). |
+| Cache (Milestone 4) | a plain dictionary in memory, guarded by a lock | No new dependency and no database. Lost on restart, which is acceptable for a cache (section 11). |
 | Containers | none | Allowed (at most two); fewer moving parts. |
 | Identification | a `User-Agent` header saying `ioc-simple-dns/0.1 (training project)` | Polite to public services. It deliberately contains no personal e-mail address. |
 | Python | 3.11 or newer (developed on 3.14.7) | |
@@ -63,12 +64,18 @@ Base path `/api/v1`, JSON everywhere. A breaking change would go to `/api/v2/`.
   "ioc": { "type": "domain", "input": "Example.com", "value": "example.com" },
   "sources": {
     "dns":   { "status": "ok", "data": { "resolver": "dns.google", "rcode": "NOERROR",
-               "A": [{ "value": "104.20.23.154", "ttl": 300 }], "AAAA": [], "NS": [], "MX": [], "TXT": [] } },
+               "A": [{ "value": "104.20.23.154", "ttl": 300 }], "AAAA": [], "NS": [], "MX": [], "TXT": [] },
+               "score": 60, "score_reason": "the name resolves to an address" },
     "rdap":  { "status": "ok", "data": { "registrar": "...", "registered": "1995-08-14T04:00:00Z", "expires": "...",
-               "nameservers": ["..."], "registry_url": "..." } },
+               "nameservers": ["..."], "registry_url": "..." },
+               "score": 90, "score_reason": "registered 5 years or more ago" },
     "crtsh": { "status": "error", "data": null,
-               "error": { "code": "upstream_error", "message": "crt.sh returned HTTP 502" } }
-  }
+               "error": { "code": "upstream_error", "message": "crt.sh returned HTTP 502" },
+               "score": null, "score_reason": "no score: the source could not be reached" }
+  },
+  "assessment": { "score_min": 0, "score_max": 100, "average": 75, "sources_used": 2, "sources_total": 3,
+                  "verdict": "undetermined", "verdict_label": "Undetermined",
+                  "verdict_note": "only 2 of 3 sources gave a score, so the verdict cannot be more than Undetermined" }
 }
 ```
 
@@ -93,6 +100,49 @@ Other responses, always in the same format `{"error": "...", "input": "..."}` (`
 | 500 | an unexpected bug (details go to the log, not the answer) |
 
 `GET /api/v1/health` returns `{"status": "ok"}`.
+
+## 4a. Scores and verdict (Milestone 3)
+
+After the three sources have been asked, each source's result becomes a **score from 0 to 100**: **0 = definitely malware, 100 = definitely not malware**.
+The scores are rough guesses from weak signals. Each source block carries `score` (integer, or `null`) and `score_reason` (a plain sentence). Old fields are unchanged.
+
+| Source and status | Score | Reason |
+|---|---|---|
+| any source, `error` | `null` (no score) | A failure says nothing about the name. The source is **left out** of the average. |
+| any source, `not_found` | 50 | A real answer, but with little meaning (RDAP also says it for subdomains and for `.de` / `.io`), so it is neutral. |
+| dns, `ok`, has an A or AAAA record | 60 | Resolving is weak evidence: malware names resolve too. |
+| dns, `ok`, no A and no AAAA record | 40 | The name exists but points nowhere, which is slightly odd. |
+| rdap, `ok`, registered under 30 days ago | 15 | Newly registered names are a classic warning sign. |
+| rdap, `ok`, 30 days up to 1 year | 40 | Still young. |
+| rdap, `ok`, 1 year up to 5 years | 70 | Established. |
+| rdap, `ok`, 5 years or more | 90 | Long-lived names are rarely throw-away malware names. |
+| rdap, `ok`, no registration date | 50 | Nothing to judge by. |
+| crtsh, `ok`, first certificate under 30 days ago | 25 | A brand-new certificate history is a warning sign. |
+| crtsh, `ok`, 30 days up to 1 year | 50 | Neutral. |
+| crtsh, `ok`, 1 year or more | 75 | A long certificate history suggests an established site. |
+
+"Years" are counted as 365 days. Age is measured against today's date (UTC) when the lookup runs.
+
+**Average.** The average of the scores that exist, **rounded to a whole number** (a .5 rounds up). `sources_used` says how many scores were averaged out of `sources_total` (3).
+
+**Verdict** (decided from the rounded average, **but only when all three sources gave a score**):
+
+| Average | `verdict` | `verdict_label` |
+|---|---|---|
+| 0 to 40 | `likely_malware` | Likely malware |
+| 41 to 60 | `undetermined` | Undetermined |
+| 61 to 100 | `likely_safe` | Likely safe |
+
+**All three sources are needed for a firm verdict.** If `sources_used` is less than `sources_total`, the verdict is always `undetermined`, whatever the average is,
+and `verdict_note` says why. Reason: a flaky source (crt.sh often fails) must not flip a name between "likely malware" and "undetermined" from one run to the next.
+The average and the scores stay as they are, so the facts are still visible. `verdict_note` is `null` when all three scored.
+
+There is deliberately no "definitely" verdict: three weak signals cannot support one. (The first request named five verdicts; three were chosen with the project owner on 2026-11-09.)
+
+**No score at all.** If no source produced a score (only possible when every source ended in `error`) the answer is the existing 502 and carries no assessment.
+Otherwise at least one score exists. A `not_found` is a score of 50, so a name nobody knows lands on `undetermined`.
+
+`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when all three sources scored).
 
 ## 5. Input rules
 
@@ -144,7 +194,13 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 5. `design.md` and the README match the code.
 6. Merged to `main` through a pull request.
 
-**Milestone 3: caching.** Done when:
+**Milestone 3: scores and verdict.** Done when:
+1. Every source block has `score` and `score_reason`; the response has `assessment` as in section 4a; no old field changed.
+2. The average, the three verdicts and their band edges (40/41, 60/61) are tested with 3, 2 and 1 sources used (fewer than 3 is always Undetermined), as are each source's scoring, a failing source and the all-failed case.
+3. The page shows the three scores, the average, the verdict and the caveat.
+4. `design.md` and the README match the code; merged to `main` through a pull request.
+
+**Milestone 4: caching.** Done when:
 1. Each source has its own expiry, with the reason written in section 11, and Google DNS follows its `Cache-Control` header.
 2. An error is never cached; "not found" is, for less time.
 3. One IOC typed differently shares one entry; two IOCs never do; the key holds the source and never a secret.
@@ -158,7 +214,7 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 Plain Flask and `requests` instead of FastAPI and async code; plain dictionaries instead of model classes; three small backend files instead of fifteen;
 no themed interface; sources asked one after another instead of at the same time. Same contract, same three sources, same rules about facts and failures.
 
-## 11. Caching (Milestone 3)
+## 11. Caching (Milestone 4)
 
 **Why.** One lookup of a known name costs **8 outbound requests**: 5 to Google DNS (one per record type), 2 to RDAP (rdap.org redirects to the registry) and 1 to crt.sh.
 RDAP allows only 10 requests per 10 s, crt.sh is slow, throttled and often fails, and an analyst often looks up the same IOC more than once.
@@ -187,7 +243,7 @@ This version supports only DNS names (IP addresses, hashes and URLs are rejected
 **Storage.** A dictionary in memory with a lock (the Flask development server answers several requests at once). Reasons: simplest possible, no new dependency, no database (a hard constraint).
 Costs: it is emptied when the backend restarts and is not shared between two backend processes. It holds at most 5000 entries (expired ones are dropped first, then the oldest).
 
-**Telling cached from fresh.** The response headers below are an **addition made in Milestone 3. They are not part of the API contract (section 4)**, which is unchanged:
+**Telling cached from fresh.** The response headers below are an **addition made in Milestone 4. They are not part of the API contract (section 4)**, which is unchanged:
 the JSON body is exactly as in Milestone 2, and every field and status code is as before. A source that came from the cache is reported in a header on the 200 response:
 
 | Header | Meaning |

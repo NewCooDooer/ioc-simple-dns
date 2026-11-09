@@ -73,6 +73,43 @@ def test_the_crtsh_summary(client, mock):
     assert len(crtsh["names"]) <= 50 and len(crtsh["issuers"]) <= 10
 
 
+# ---- scores and verdict through the API ----
+
+def test_every_source_has_a_score_and_the_answer_has_an_assessment(client, mock):
+    replay_all(mock, "hit")
+    body = client.get(HIT).get_json()
+    for block in body["sources"].values():
+        assert 0 <= block["score"] <= 100 and block["score_reason"] != ""
+    assessment = body["assessment"]
+    assert assessment["sources_used"] == 3 and assessment["sources_total"] == 3
+    assert assessment["score_min"] == 0 and assessment["score_max"] == 100
+    assert assessment["verdict"] == "likely_safe" and assessment["verdict_note"] is None  # example.com: old name, old certificates
+
+
+def test_unknown_name_is_undetermined(client, mock):
+    replay_all(mock, "unknown")
+    assessment = client.get(UNKNOWN).get_json()["assessment"]
+    assert assessment["average"] == 50 and assessment["verdict"] == "undetermined"
+
+
+def test_a_failing_source_has_a_null_score_and_is_not_averaged(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    replay(mock, "crtsh", "error_502")
+    body = client.get(HIT).get_json()
+    assert body["sources"]["crtsh"]["score"] is None
+    assert body["assessment"]["sources_used"] == 2 and body["assessment"]["sources_total"] == 3
+    assert body["assessment"]["verdict"] == "undetermined" and "2 of 3" in body["assessment"]["verdict_note"]
+
+
+def test_all_failed_answer_has_no_assessment(client, mock):
+    mock.add(responses.GET, ANY_DNS, status=502, body="x")
+    mock.add(responses.GET, ANY_RDAP, status=502, body="x")
+    mock.add(responses.GET, ANY_CRTSH, status=502, body="x")
+    body = client.get(HIT).get_json()
+    assert "assessment" not in body
+
+
 # ---- a name that no source knows ----
 
 def test_an_unknown_name_is_not_found_everywhere_but_still_200(client, mock):
