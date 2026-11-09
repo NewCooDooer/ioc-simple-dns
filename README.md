@@ -3,13 +3,15 @@
 A deliberately **small** version of the IOC Enrichment Portal, built step by step so that every line can be explained.
 It follows the same assignment specifications as the full version, with the simplest possible code: plain functions, no async, no extras.
 
-**Status: Milestone 2.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
+**Status: Milestone 4.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
 and crt.sh (which certificates were issued). If one source fails, the other two still return and the failed one says what went wrong.
+Each source gets a 0-100 score, the scores are averaged, and the average gives a verdict (likely malware, undetermined or likely safe). Only when all three sources scored can the verdict be more than undetermined.
+Answers are **cached in memory** (each source for its own time, see [Caching](#caching)), and the backend says which sources came from the cache (in response headers; the JSON body is unchanged).
 Tests replay recorded real answers and run with the network off. The plan and the API contract are in [`design.md`](design.md);
 the evidence for each milestone is in [`docs/milestones.md`](docs/milestones.md).
 
 > **Do not enter internal or private names** (for example `*.corp`, `*.local`, your company's domains). Lookups go to outside services.
-> The sources report facts and none of them gives a verdict.
+> The sources report facts; the backend turns them into a rough score and verdict, which is a guess, not a finding.
 
 The full, finished version (themed interface, concurrent lookups) is here: https://github.com/NewCooDooer/ioc-enrichment-portal-dns
 
@@ -67,7 +69,15 @@ curl -s http://127.0.0.1:8010/api/v1/health
 ```
 
 Each source in the answer has a `status`: `ok`, `not_found` (the source answered "nothing known") or `error` (the check could not be completed).
-A failing source never hides the others; only when **all** sources fail does the API answer 502. See [`design.md`](design.md) section 4 for the full contract.
+A failing source never hides the others; only when **all** sources fail does the API answer 502. Each source also has a `score` (0 = definitely malware, 100 = definitely not malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
+See [`design.md`](design.md) sections 4 and 4a for the full contract and the scoring rules.
+
+## Caching
+
+Each source's result is kept in memory so that asking again does not contact the source again: Google DNS for the time Google's own `Cache-Control` header allows
+(its terms require that), RDAP for 1 hour, crt.sh for 6 hours; "not found" for less (5 and 10 minutes); an **error is never kept**. The reasons are in
+[`design.md`](design.md) section 11. A source that came from the cache gets a response header `X-Cache-Age-<source>: N` (N = seconds since it was fetched; no header means it was just fetched), and the page shows "Cached result, fetched 7 min ago".
+The cache is emptied when the backend restarts.
 
 ### See a source fail on purpose
 
@@ -94,6 +104,21 @@ sandbox-exec -p '(version 1)(allow default)(deny network*)' python -m pytest -v
 The tests cover a known name, an unknown name, a real recorded crt.sh 502, all sources failing (502), invalid input (400), and two failures that are
 **simulated** (a timeout and an unreadable answer), because a real service cannot be asked to fail on command.
 
+The cache tests (`tests/test_cache.py`) show a hit, a miss, an expired entry (with a fake clock, so nothing waits) and errors that are not cached.
+
+### Count the outbound requests (the fixed run)
+
+```bash
+python bench/run_benchmark.py before    # run on code WITHOUT the cache  -> bench/results/before.json
+python bench/run_benchmark.py after     # run on code WITH the cache     -> bench/results/after.json
+python bench/run_benchmark.py compare   # both tables, and a check that every answer is unchanged
+```
+
+It sends the same 27 lookups through the backend (repeats, different spellings of one name, a name that does not exist, a failing crt.sh, invalid input).
+A fake web replays the recordings and sockets are blocked, so **no real request is sent and no quota is spent**. It counts the requests each source would have received.
+
+The two files in `bench/results/` are **generated** by the commands above (about 5,000 lines of per-request output); do not edit them by hand, rerun the commands instead.
+
 To record fresh real answers (rarely needed; crt.sh may need many retries): `python record.py`, or just one case, for example `python record.py crtsh_error`.
 
 ## Use from Claude Desktop (MCP)
@@ -118,7 +143,9 @@ If the server shows as failed, open its log, `...\AppData\Local\Claude\logs\mcp-
 ```
 backend/validate.py   checks and cleans the typed name
 backend/sources.py    asks Google DNS, RDAP and crt.sh
+backend/cache.py      the in-memory cache (what is kept, for how long)
 backend/app.py        the Flask web server and its routes
+bench/                the fixed run that counts outbound requests
 frontend/page.py      the Streamlit page
 mcp_server/server.py  the MCP server that lets Claude call the backend
 record.py             saves real answers for the tests (run by hand)
