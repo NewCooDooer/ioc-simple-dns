@@ -97,6 +97,12 @@ def add_scores(sources, today):
     if average is None:
         return None
     code, label = verdict_for(average)
+
+    # A firm verdict needs ALL sources. With fewer, a flaky source could flip the verdict between runs, so cap it at undetermined.
+    note = None
+    if used < len(sources):
+        code, label = "undetermined", "Undetermined"
+        note = f"only {used} of {len(sources)} sources gave a score, so the verdict cannot be more than Undetermined"
     return {
         "score_min": MIN_SCORE,
         "score_max": MAX_SCORE,
@@ -105,4 +111,5 @@ def add_scores(sources, today):
         "sources_total": len(sources),
         "verdict": code,
         "verdict_label": label,
+        "verdict_note": note,
     }

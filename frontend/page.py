@@ -63,6 +63,8 @@ def show_assessment(body):
     st.markdown("### Verdict")
     st.write(f"**{assessment['verdict_label']}**: average score {assessment['average']} "
              f"(0 = definitely malware, 100 = definitely not malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
+    if assessment["verdict_note"] is not None:
+        st.warning(assessment["verdict_note"].capitalize() + ".")
     rows = {}
     for key, block in body["sources"].items():
         score = block["score"]

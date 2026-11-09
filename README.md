@@ -5,7 +5,7 @@ It follows the same assignment specifications as the full version, with the simp
 
 **Status: Milestone 3.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
 and crt.sh (which certificates were issued). If one source fails, the other two still return and the failed one says what went wrong.
-Each source gets a 0-100 score, the scores are averaged, and the average gives a verdict (likely malware, undetermined or likely safe).
+Each source gets a 0-100 score, the scores are averaged, and the average gives a verdict (likely malware, undetermined or likely safe). Only when all three sources scored can the verdict be more than undetermined.
 Tests replay recorded real answers and run with the network off. The plan and the API contract are in [`design.md`](design.md);
 the evidence for each milestone is in [`docs/milestones.md`](docs/milestones.md).
 

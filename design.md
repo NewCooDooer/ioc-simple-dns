@@ -72,7 +72,8 @@ Base path `/api/v1`, JSON everywhere. A breaking change would go to `/api/v2/`.
                "score": null, "score_reason": "no score: the source could not be reached" }
   },
   "assessment": { "score_min": 0, "score_max": 100, "average": 75, "sources_used": 2, "sources_total": 3,
-                  "verdict": "likely_safe", "verdict_label": "Likely safe" }
+                  "verdict": "undetermined", "verdict_label": "Undetermined",
+                  "verdict_note": "only 2 of 3 sources gave a score, so the verdict cannot be more than Undetermined" }
 }
 ```
 
@@ -122,7 +123,7 @@ The scores are rough guesses from weak signals. Each source block carries `score
 
 **Average.** The average of the scores that exist, **rounded to a whole number** (a .5 rounds up). `sources_used` says how many scores were averaged out of `sources_total` (3).
 
-**Verdict** (decided from the rounded average):
+**Verdict** (decided from the rounded average, **but only when all three sources gave a score**):
 
 | Average | `verdict` | `verdict_label` |
 |---|---|---|
@@ -130,12 +131,16 @@ The scores are rough guesses from weak signals. Each source block carries `score
 | 41 to 60 | `undetermined` | Undetermined |
 | 61 to 100 | `likely_safe` | Likely safe |
 
+**All three sources are needed for a firm verdict.** If `sources_used` is less than `sources_total`, the verdict is always `undetermined`, whatever the average is,
+and `verdict_note` says why. Reason: a flaky source (crt.sh often fails) must not flip a name between "likely malware" and "undetermined" from one run to the next.
+The average and the scores stay as they are, so the facts are still visible. `verdict_note` is `null` when all three scored.
+
 There is deliberately no "definitely" verdict: three weak signals cannot support one. (The first request named five verdicts; three were chosen with the project owner on 2026-11-09.)
 
 **No score at all.** If no source produced a score (only possible when every source ended in `error`) the answer is the existing 502 and carries no assessment.
 Otherwise at least one score exists. A `not_found` is a score of 50, so a name nobody knows lands on `undetermined`.
 
-`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text).
+`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when all three sources scored).
 
 ## 5. Input rules
 
@@ -189,7 +194,7 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 
 **Milestone 3: scores and verdict.** Done when:
 1. Every source block has `score` and `score_reason`; the response has `assessment` as in section 4a; no old field changed.
-2. The average, the three verdicts and their band edges (40/41, 60/61) are tested, as are each source's scoring, a failing source and the all-failed case.
+2. The average, the three verdicts and their band edges (40/41, 60/61) are tested with 3, 2 and 1 sources used (fewer than 3 is always Undetermined), as are each source's scoring, a failing source and the all-failed case.
 3. The page shows the three scores, the average, the verdict and the caveat.
 4. `design.md` and the README match the code; merged to `main` through a pull request.
 

@@ -89,7 +89,7 @@ def test_assessment_with_three_scores():
     assessment = add_scores(sources, TODAY)
     # (60 + 15 + 75) / 3 = 50
     assert assessment == {"score_min": 0, "score_max": 100, "average": 50, "sources_used": 3, "sources_total": 3,
-                          "verdict": "undetermined", "verdict_label": "Undetermined"}
+                          "verdict": "undetermined", "verdict_label": "Undetermined", "verdict_note": None}
     assert sources["rdap"]["score"] == 15 and sources["rdap"]["score_reason"] != ""
 
 
@@ -99,7 +99,9 @@ def test_a_failed_source_is_left_out_and_counted():
     assessment = add_scores(sources, TODAY)
     assert sources["crtsh"]["score"] is None
     assert assessment["average"] == 38 and assessment["sources_used"] == 2  # (60 + 15) / 2 = 37.5 -> 38
-    assert assessment["verdict"] == "likely_malware"
+    # 38 would be "likely malware", but only 2 of 3 sources scored, so the verdict is capped (the papervinegames case)
+    assert assessment["verdict"] == "undetermined"
+    assert "2 of 3" in assessment["verdict_note"]
 
 
 def test_no_source_answered_gives_no_assessment():
@@ -112,3 +114,47 @@ def test_all_not_found_is_undetermined():
     sources = {k: {"status": "not_found", "data": None} for k in ("dns", "rdap", "crtsh")}
     assessment = add_scores(sources, TODAY)
     assert assessment["average"] == 50 and assessment["verdict"] == "undetermined"
+
+
+# ---- a firm verdict needs all three sources: both ends of the bands with 3, 2 and 1 sources used ----
+
+ERROR = {"status": "error", "data": None, "error": {"code": "upstream_error", "message": "x"}}
+
+
+def test_verdict_by_number_of_sources_used():
+    # DNS 40 / 60 and RDAP 15 / 90 are produced by real rules; build low and high sets from them.
+    low_dns = {"status": "ok", "data": {"A": [], "AAAA": []}}  # 40
+    high_rdap = {"status": "ok", "data": {"registered": days_ago(4000)}}  # 90
+    low_rdap = {"status": "ok", "data": {"registered": days_ago(1)}}  # 15
+    high_crtsh = {"status": "ok", "data": {"first_seen": days_ago(4000)}}  # 75
+    low_crtsh = {"status": "ok", "data": {"first_seen": days_ago(1)}}  # 25
+
+    # all three: low end is likely malware (40, 15, 25 -> 27), high end is likely safe (60, 90, 75 -> 75)
+    low = add_scores({"dns": dict(low_dns), "rdap": dict(low_rdap), "crtsh": dict(low_crtsh)}, TODAY)
+    assert low["verdict"] == "likely_malware" and low["verdict_note"] is None
+    high_dns = {"status": "ok", "data": {"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []}}
+    high = add_scores({"dns": dict(high_dns), "rdap": dict(high_rdap), "crtsh": dict(high_crtsh)}, TODAY)
+    assert high["verdict"] == "likely_safe" and high["verdict_note"] is None
+
+    # two used: the same low and high averages are capped
+    low2 = add_scores({"dns": dict(low_dns), "rdap": dict(low_rdap), "crtsh": dict(ERROR)}, TODAY)
+    assert low2["average"] == 28 and low2["sources_used"] == 2 and low2["verdict"] == "undetermined"
+    high2 = add_scores({"dns": dict(high_dns), "rdap": dict(high_rdap), "crtsh": dict(ERROR)}, TODAY)
+    assert high2["average"] == 75 and high2["sources_used"] == 2 and high2["verdict"] == "undetermined"
+    assert high2["verdict_note"] is not None
+
+    # one used: capped as well, at both ends
+    low1 = add_scores({"dns": dict(ERROR), "rdap": dict(low_rdap), "crtsh": dict(ERROR)}, TODAY)
+    assert low1["average"] == 15 and low1["sources_used"] == 1 and low1["verdict"] == "undetermined"
+    high1 = add_scores({"dns": dict(ERROR), "rdap": dict(high_rdap), "crtsh": dict(ERROR)}, TODAY)
+    assert high1["average"] == 90 and high1["sources_used"] == 1 and high1["verdict"] == "undetermined"
+
+
+def test_the_papervinegames_case_scores_60_and_15_with_crtsh_in_error():
+    sources = {
+        "dns": {"status": "ok", "data": {"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []}},  # 60
+        "rdap": {"status": "ok", "data": {"registered": days_ago(5)}},  # 15
+        "crtsh": dict(ERROR),
+    }
+    assessment = add_scores(sources, TODAY)
+    assert assessment["average"] == 38 and assessment["verdict"] == "undetermined"
