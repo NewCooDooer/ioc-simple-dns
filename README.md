@@ -113,6 +113,15 @@ To record fresh real answers (rarely needed; crt.sh may need many retries): `pyt
 If you already have other servers in the file, add `"ioc-dns": {...}` inside the existing `"mcpServers"` object (with a comma between entries); do not paste a second outer `{ }`.
 If the server shows as failed, open its log, `...\AppData\Local\Claude\logs\mcp-server-ioc-dns.log` (also behind "View logs" in Claude Desktop's settings), which shows the Python error.
 
+### Use the skill (fixed output format)
+
+`.claude/skills/ioc-dns-lookup/SKILL.md` is a Claude skill that makes the answers look the same every time: the same five sections per name
+(lookup summary, source status, DNS records, registration, certificates), facts only, and fixed wording when a source fails or a name is refused.
+It uses only the `ioc-dns` MCP tools above, so set those up first.
+
+- **Code tab:** open this repository folder; the skill is found automatically. Type `/ioc-dns-lookup example.com`, or just ask "look up example.com".
+- **Chat:** zip the `ioc-dns-lookup` folder (the zip must contain that folder with `SKILL.md` inside), then Settings > Capabilities > Skills > upload it.
+
 ## Files
 
 ```
@@ -121,6 +130,7 @@ backend/sources.py    asks Google DNS, RDAP and crt.sh
 backend/app.py        the Flask web server and its routes
 frontend/page.py      the Streamlit page
 mcp_server/server.py  the MCP server that lets Claude call the backend
+.claude/skills/       the Claude skill that fixes the output format of lookups
 record.py             saves real answers for the tests (run by hand)
 tests/                the tests and the recorded answers (tests/fixtures/)
 design.md             the plan and the API contract
