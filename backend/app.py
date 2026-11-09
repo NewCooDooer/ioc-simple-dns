@@ -58,7 +58,7 @@ def domain(name):
     answer = {
         "ioc": {"type": "domain", "input": name, "value": clean_name},
         "sources": sources,
-        "assessment": add_scores(sources, datetime.now(timezone.utc).date()),
+        "assessment": add_scores(sources, clean_name, datetime.now(timezone.utc).date()),
     }
     response = jsonify(answer)
 

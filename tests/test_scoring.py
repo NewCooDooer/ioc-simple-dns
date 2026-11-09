@@ -1,10 +1,13 @@
-"""Scoring tested directly (no web, no recordings): every band edge, each source's rules, errors and the empty case."""
+"""Scoring tested directly (no web, no recordings): every band edge, every signal, errors and the empty case."""
 
 from datetime import date
 
-from backend.scoring import add_scores, average_of, score_crtsh, score_dns, score_rdap, score_source, verdict_for
+from backend.scoring import add_scores, average_of, verdict_for
+from backend.signals import finish, name_shape_points, odd_address, score_crtsh, score_dns, score_rdap
 
 TODAY = date(2026, 11, 9)
+NAME = "example.com"
+ERROR = {"status": "error", "data": None, "error": {"code": "upstream_error", "message": "x"}}
 
 
 def days_ago(days):
@@ -12,18 +15,28 @@ def days_ago(days):
     return date.fromordinal(TODAY.toordinal() - days).isoformat() + "T00:00:00Z"
 
 
+def dns_data(*addresses, ttl=300):
+    """DNS data with these A addresses (none = the name exists but has no address)."""
+    return {"A": [{"value": address, "ttl": ttl} for address in addresses], "AAAA": []}
+
+
+def rdap_data(days, statuses=()):
+    return {"registered": None if days is None else days_ago(days), "statuses": list(statuses)}
+
+
 # ---- the verdict bands: test both sides of every edge ----
 
 def test_band_edges():
-    edges = {0: "likely_malware", 40: "likely_malware", 41: "undetermined", 60: "undetermined", 61: "likely_safe", 100: "likely_safe"}
+    edges = {0: "definitely_safe", 30: "definitely_safe", 31: "likely_safe", 45: "likely_safe", 46: "undetermined",
+             55: "undetermined", 56: "likely_malware", 70: "likely_malware", 71: "definitely_malware", 100: "definitely_malware"}
     for average, expected in edges.items():
         assert verdict_for(average)[0] == expected, average
 
 
 def test_verdict_labels():
-    assert verdict_for(10)[1] == "Likely malware"
-    assert verdict_for(50)[1] == "Undetermined"
-    assert verdict_for(90)[1] == "Likely safe"
+    labels = {10: "Definitely safe", 40: "Likely safe", 50: "Undetermined", 60: "Likely malware", 90: "Definitely malware"}
+    for average, expected in labels.items():
+        assert verdict_for(average)[1] == expected
 
 
 # ---- the average and its rounding ----
@@ -42,128 +55,209 @@ def test_average_of_nothing():
     assert average_of([None, None, None]) == (None, 0)
 
 
-# ---- each source's scoring ----
+# ---- finish: starting point, points, clamping, reasons ----
 
-def test_dns_scores():
-    assert score_dns({"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []})[0] == 60
-    assert score_dns({"A": [], "AAAA": [{"value": "::1", "ttl": 1}]})[0] == 60
-    assert score_dns({"A": [], "AAAA": []})[0] == 40
+def test_finish_starts_at_50_adds_points_and_lists_reasons():
+    assert finish([(-10, "a"), (35, "b")]) == (75, "a (-10); b (+35)")
+    assert finish([]) == (50, "no signal fired")
 
 
-def test_rdap_scores_and_their_edges():
-    cases = {0: 15, 29: 15, 30: 40, 364: 40, 365: 70, 1824: 70, 1825: 90, 10000: 90}
+def test_finish_keeps_the_score_between_0_and_100():
+    assert finish([(-40, "a"), (-40, "b")])[0] == 0
+    assert finish([(40, "a"), (40, "b")])[0] == 100
+
+
+# ---- DNS signals ----
+
+def test_dns_resolving_or_not():
+    assert score_dns(dns_data("104.20.23.154"), NAME)[0] == 40
+    assert score_dns({"A": [], "AAAA": [{"value": "2606:4700::1", "ttl": 300}]}, NAME)[0] == 40
+    assert score_dns(dns_data(), NAME)[0] == 60
+
+
+def test_dns_odd_addresses():
+    for address in ("127.0.0.1", "10.0.0.1", "192.168.1.1", "0.0.0.0", "169.254.1.1"):
+        assert odd_address(address), address
+        assert score_dns(dns_data(address), NAME)[0] == 65, address  # 50 - 10 + 25
+    assert not odd_address("104.20.23.154") and not odd_address("not an address")
+
+
+def test_dns_low_ttl_edge():
+    assert score_dns(dns_data("104.20.23.154", ttl=59), NAME)[0] == 55  # 50 - 10 + 15
+    assert score_dns(dns_data("104.20.23.154", ttl=60), NAME)[0] == 40
+
+
+def test_name_shape_signals():
+    assert name_shape_points("example.com") == []
+    assert name_shape_points("xn--bcher-kva.de") == [(10, "punycode label in the name")]  # its "xn--" is not counted as a hyphen
+    assert name_shape_points("a1b2c3d4.com") == [(10, "many digits in the name")]
+    assert name_shape_points("abcde12fgh.com") == []  # 2 digits of 10 is 20 %, under the 30 % line
+    assert name_shape_points("a-b-c.com") == [(5, "two or more hyphens in the name")]
+    assert name_shape_points("a-b.com") == []
+    assert name_shape_points("a" * 25 + ".com") == [(5, "a very long label in the name")]
+    assert name_shape_points("a" * 24 + ".com") == []
+
+
+def test_name_shape_is_capped_at_20():
+    assert name_shape_points("xn--12345-a-b.com") == [(20, "several odd signs in the name shape (capped)")]
+
+
+# ---- RDAP signals ----
+
+def test_rdap_age_edges():
+    cases = {0: 85, 29: 85, 30: 60, 364: 60, 365: 30, 1824: 30, 1825: 10, 10000: 10}
     for days, expected in cases.items():
-        assert score_rdap({"registered": days_ago(days)}, TODAY)[0] == expected, days
-    assert score_rdap({"registered": None}, TODAY)[0] == 50
+        assert score_rdap(rdap_data(days), TODAY)[0] == expected, days
+    assert score_rdap(rdap_data(None), TODAY)[0] == 50
 
 
-def test_crtsh_scores_and_their_edges():
-    cases = {0: 25, 29: 25, 30: 50, 364: 50, 365: 75, 4000: 75}
+def test_rdap_hold_status():
+    assert score_rdap(rdap_data(5000, ["serverHold"]), TODAY)[0] == 30  # 10 + 20
+    assert score_rdap(rdap_data(5000, ["clientHold"]), TODAY)[0] == 30
+    assert score_rdap(rdap_data(5000, ["client delete prohibited"]), TODAY)[0] == 10
+
+
+# ---- crt.sh signals ----
+
+def crt_data(days):
+    return {"first_seen": days_ago(days)}
+
+
+def test_crtsh_age_edges():
+    cases = {0: 75, 29: 75, 30: 50, 364: 50, 365: 25, 4000: 25}
     for days, expected in cases.items():
-        assert score_crtsh({"first_seen": days_ago(days)}, TODAY)[0] == expected, days
+        assert score_crtsh(crt_data(days), TODAY, None)[0] == expected, days
 
 
 def test_a_crtsh_date_without_a_timezone_works():
-    assert score_crtsh({"first_seen": "2020-01-01T00:00:00"}, TODAY)[0] == 75
+    assert score_crtsh({"first_seen": "2020-01-01T00:00:00"}, TODAY, None)[0] == 25
 
 
-def test_error_has_no_score_and_not_found_is_neutral():
-    error = {"status": "error", "data": None, "error": {"code": "timeout", "message": "x"}}
-    assert score_source("rdap", error, TODAY)[0] is None
-    for key in ("dns", "rdap", "crtsh"):
-        assert score_source(key, {"status": "not_found", "data": None}, TODAY)[0] == 50
+def test_certificate_gap():
+    assert score_crtsh(crt_data(5), TODAY, days_ago(400))[0] == 95  # 50 + 25 + 20
+    assert score_crtsh(crt_data(5), TODAY, days_ago(364))[0] == 75  # registered under a year ago: no gap
+    assert score_crtsh(crt_data(31), TODAY, days_ago(4000))[0] == 50  # first certificate not new: no gap
+    assert score_crtsh(crt_data(5), TODAY, None)[0] == 75  # RDAP gave no date: no gap
+
+
+# ---- not found and errors ----
+
+def test_not_found_leans_a_little_and_error_has_no_score():
+    scores = {}
+    sources = {key: {"status": "not_found", "data": None} for key in ("dns", "rdap", "crtsh")}
+    add_scores(sources, NAME, TODAY)
+    for key, block in sources.items():
+        scores[key] = block["score"]
+    assert scores == {"dns": 55, "rdap": 50, "crtsh": 60}
+    sources = {"dns": dict(ERROR), "rdap": dict(ERROR), "crtsh": dict(ERROR)}
+    assert add_scores(sources, NAME, TODAY) is None
+    assert sources["dns"]["score"] is None
 
 
 # ---- the whole assessment ----
 
 def sample_sources():
     return {
-        "dns": {"status": "ok", "data": {"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []}},
-        "rdap": {"status": "ok", "data": {"registered": days_ago(10)}},
-        "crtsh": {"status": "ok", "data": {"first_seen": days_ago(2000)}},
+        "dns": {"status": "ok", "data": dns_data("104.20.23.154")},  # 40
+        "rdap": {"status": "ok", "data": rdap_data(10)},  # 85
+        "crtsh": {"status": "ok", "data": crt_data(2000)},  # 25
     }
 
 
 def test_assessment_with_three_scores():
     sources = sample_sources()
-    assessment = add_scores(sources, TODAY)
-    # (60 + 15 + 75) / 3 = 50
+    assessment = add_scores(sources, NAME, TODAY)
+    # (40 + 85 + 25) / 3 = 50
     assert assessment == {"score_min": 0, "score_max": 100, "average": 50, "sources_used": 3, "sources_total": 3,
                           "verdict": "undetermined", "verdict_label": "Undetermined", "verdict_note": None}
-    assert sources["rdap"]["score"] == 15 and sources["rdap"]["score_reason"] != ""
+    assert sources["rdap"]["score"] == 85 and "registered less than 30 days ago (+35)" in sources["rdap"]["score_reason"]
+
+
+def test_the_certificate_gap_is_found_through_the_rdap_block():
+    sources = sample_sources()
+    sources["rdap"] = {"status": "ok", "data": rdap_data(2000)}  # 10
+    sources["crtsh"] = {"status": "ok", "data": crt_data(5)}  # 50 + 25 + 20
+    add_scores(sources, NAME, TODAY)
+    assert sources["crtsh"]["score"] == 95
 
 
 def test_a_failed_source_is_left_out_and_counted():
     sources = sample_sources()
-    sources["crtsh"] = {"status": "error", "data": None, "error": {"code": "upstream_error", "message": "x"}}
-    assessment = add_scores(sources, TODAY)
+    sources["crtsh"] = dict(ERROR)
+    assessment = add_scores(sources, NAME, TODAY)
     assert sources["crtsh"]["score"] is None
-    assert assessment["average"] == 38 and assessment["sources_used"] == 2  # (60 + 15) / 2 = 37.5 -> 38
-    # 38 would be "likely malware", but only 2 of 3 sources scored, so the verdict is capped (the papervinegames case)
-    assert assessment["verdict"] == "undetermined"
-    assert "2 of 3" in assessment["verdict_note"]
-
-
-def test_no_source_answered_gives_no_assessment():
-    failed = {"status": "error", "data": None, "error": {"code": "timeout", "message": "x"}}
-    sources = {"dns": dict(failed), "rdap": dict(failed), "crtsh": dict(failed)}
-    assert add_scores(sources, TODAY) is None
+    assert assessment["average"] == 63 and assessment["sources_used"] == 2  # (40 + 85) / 2 = 62.5 -> 63
+    assert assessment["verdict"] == "likely_malware" and assessment["verdict_note"] is None
 
 
 def test_all_not_found_is_undetermined():
-    sources = {k: {"status": "not_found", "data": None} for k in ("dns", "rdap", "crtsh")}
-    assessment = add_scores(sources, TODAY)
-    assert assessment["average"] == 50 and assessment["verdict"] == "undetermined"
+    sources = {key: {"status": "not_found", "data": None} for key in ("dns", "rdap", "crtsh")}
+    assessment = add_scores(sources, NAME, TODAY)
+    assert assessment["average"] == 55 and assessment["verdict"] == "undetermined"  # (55 + 50 + 60) / 3
 
 
-# ---- a firm verdict needs all three sources: both ends of the bands with 3, 2 and 1 sources used ----
+# ---- "definitely" needs all three sources: 3, 2 and 1 sources used, both ends ----
 
-ERROR = {"status": "error", "data": None, "error": {"code": "upstream_error", "message": "x"}}
-
-
-def test_verdict_by_number_of_sources_used():
-    # DNS 40 / 60 and RDAP 15 / 90 are produced by real rules; build low and high sets from them.
-    low_dns = {"status": "ok", "data": {"A": [], "AAAA": []}}  # 40
-    high_rdap = {"status": "ok", "data": {"registered": days_ago(4000)}}  # 90
-    low_rdap = {"status": "ok", "data": {"registered": days_ago(1)}}  # 15
-    high_crtsh = {"status": "ok", "data": {"first_seen": days_ago(4000)}}  # 75
-    low_crtsh = {"status": "ok", "data": {"first_seen": days_ago(1)}}  # 25
-
-    # all three: low end is likely malware (40, 15, 25 -> 27), high end is likely safe (60, 90, 75 -> 75)
-    low = add_scores({"dns": dict(low_dns), "rdap": dict(low_rdap), "crtsh": dict(low_crtsh)}, TODAY)
-    assert low["verdict"] == "likely_malware" and low["verdict_note"] is None
-    high_dns = {"status": "ok", "data": {"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []}}
-    high = add_scores({"dns": dict(high_dns), "rdap": dict(high_rdap), "crtsh": dict(high_crtsh)}, TODAY)
-    assert high["verdict"] == "likely_safe" and high["verdict_note"] is None
-
-    # two used: the same low and high averages are capped
-    low2 = add_scores({"dns": dict(low_dns), "rdap": dict(low_rdap), "crtsh": dict(ERROR)}, TODAY)
-    assert low2["average"] == 28 and low2["sources_used"] == 2 and low2["verdict"] == "undetermined"
-    high2 = add_scores({"dns": dict(high_dns), "rdap": dict(high_rdap), "crtsh": dict(ERROR)}, TODAY)
-    assert high2["average"] == 75 and high2["sources_used"] == 2 and high2["verdict"] == "undetermined"
-    assert high2["verdict_note"] is not None
-
-    # one used: capped as well, at both ends
-    low1 = add_scores({"dns": dict(ERROR), "rdap": dict(low_rdap), "crtsh": dict(ERROR)}, TODAY)
-    assert low1["average"] == 15 and low1["sources_used"] == 1 and low1["verdict"] == "undetermined"
-    high1 = add_scores({"dns": dict(ERROR), "rdap": dict(high_rdap), "crtsh": dict(ERROR)}, TODAY)
-    assert high1["average"] == 90 and high1["sources_used"] == 1 and high1["verdict"] == "undetermined"
-
-
-def test_the_papervinegames_case_scores_60_and_15_with_crtsh_in_error():
-    sources = {
-        "dns": {"status": "ok", "data": {"A": [{"value": "1.2.3.4", "ttl": 1}], "AAAA": []}},  # 60
-        "rdap": {"status": "ok", "data": {"registered": days_ago(5)}},  # 15
-        "crtsh": dict(ERROR),
+def worst_sources():
+    return {
+        "dns": {"status": "ok", "data": dns_data("10.0.0.1", ttl=5)},  # 50 - 10 + 25 + 15 = 80
+        "rdap": {"status": "ok", "data": rdap_data(5)},  # 85
+        "crtsh": {"status": "ok", "data": crt_data(3)},  # 75
     }
-    assessment = add_scores(sources, TODAY)
-    assert assessment["average"] == 38 and assessment["verdict"] == "undetermined"
+
+
+def best_sources():
+    return {
+        "dns": {"status": "ok", "data": dns_data("104.20.23.154")},  # 40
+        "rdap": {"status": "ok", "data": rdap_data(5000)},  # 10
+        "crtsh": {"status": "ok", "data": crt_data(4000)},  # 25
+    }
+
+
+def test_definitely_malware_needs_all_three_sources():
+    three = add_scores(worst_sources(), NAME, TODAY)
+    assert three["average"] == 80 and three["verdict"] == "definitely_malware" and three["verdict_note"] is None
+
+    sources = worst_sources()
+    sources["crtsh"] = dict(ERROR)
+    two = add_scores(sources, NAME, TODAY)
+    assert two["average"] == 83 and two["verdict"] == "likely_malware" and "2 of 3" in two["verdict_note"]
+    assert two["verdict_label"] == "Likely malware"
+
+    sources = worst_sources()
+    sources["dns"], sources["crtsh"] = dict(ERROR), dict(ERROR)
+    one = add_scores(sources, NAME, TODAY)
+    assert one["average"] == 85 and one["verdict"] == "likely_malware" and "1 of 3" in one["verdict_note"]
+
+
+def test_definitely_safe_needs_all_three_sources():
+    three = add_scores(best_sources(), NAME, TODAY)
+    assert three["average"] == 25 and three["verdict"] == "definitely_safe" and three["verdict_note"] is None
+
+    sources = best_sources()
+    sources["crtsh"] = dict(ERROR)
+    two = add_scores(sources, NAME, TODAY)
+    assert two["average"] == 25 and two["verdict"] == "likely_safe" and "2 of 3" in two["verdict_note"]
+    assert two["verdict_label"] == "Likely safe"
+
+    sources = best_sources()
+    sources["dns"], sources["crtsh"] = dict(ERROR), dict(ERROR)
+    one = add_scores(sources, NAME, TODAY)
+    assert one["average"] == 10 and one["verdict"] == "likely_safe" and "1 of 3" in one["verdict_note"]
+
+
+def test_other_verdicts_are_not_changed_by_a_missing_source():
+    sources = best_sources()
+    sources["rdap"] = {"status": "ok", "data": rdap_data(1000)}  # 30
+    sources["crtsh"] = dict(ERROR)
+    two = add_scores(sources, NAME, TODAY)  # (40 + 30) / 2 = 35
+    assert two["verdict"] == "likely_safe" and two["verdict_note"] is None
 
 
 def test_scoring_does_not_change_the_original_blocks():
     """Cached results are shared between requests, so scoring must work on copies and leave the originals alone."""
     originals = sample_sources()
     given = {key: block for key, block in originals.items()}
-    add_scores(given, TODAY)
+    add_scores(given, NAME, TODAY)
     for block in originals.values():
         assert "score" not in block and "score_reason" not in block

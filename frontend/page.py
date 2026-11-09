@@ -62,7 +62,7 @@ def show_assessment(body):
     assessment = body["assessment"]
     st.markdown("### Verdict")
     st.write(f"**{assessment['verdict_label']}**: average score {assessment['average']} "
-             f"(0 = definitely malware, 100 = definitely not malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
+             f"(0 = definitely safe, 100 = definitely malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
     if assessment["verdict_note"] is not None:
         st.warning(assessment["verdict_note"].capitalize() + ".")
     rows = {}
@@ -70,7 +70,7 @@ def show_assessment(body):
         score = block["score"]
         rows[TITLES.get(key, key)] = {"Score": "no score" if score is None else score, "Why": block["score_reason"]}
     st.table(rows)
-    st.caption("This verdict is a rough guess from three weak signals, not a finding. Check the facts below before acting on it.")
+    st.caption("This verdict is built from public registration facts (name age, DNS, certificates). It is a risk indicator, not a malware test: it cannot see blocklists or past incidents. Check the facts below before acting on it.")
 
 
 def describe_age(seconds):

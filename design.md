@@ -65,17 +65,16 @@ Base path `/api/v1`, JSON everywhere. A breaking change would go to `/api/v2/`.
   "sources": {
     "dns":   { "status": "ok", "data": { "resolver": "dns.google", "rcode": "NOERROR",
                "A": [{ "value": "104.20.23.154", "ttl": 300 }], "AAAA": [], "NS": [], "MX": [], "TXT": [] },
-               "score": 60, "score_reason": "the name resolves to an address" },
+               "score": 40, "score_reason": "resolves to an address (-10)" },
     "rdap":  { "status": "ok", "data": { "registrar": "...", "registered": "1995-08-14T04:00:00Z", "expires": "...",
                "nameservers": ["..."], "registry_url": "..." },
-               "score": 90, "score_reason": "registered 5 years or more ago" },
+               "score": 10, "score_reason": "registered 5 years or more ago (-40)" },
     "crtsh": { "status": "error", "data": null,
                "error": { "code": "upstream_error", "message": "crt.sh returned HTTP 502" },
                "score": null, "score_reason": "no score: the source could not be reached" }
   },
-  "assessment": { "score_min": 0, "score_max": 100, "average": 75, "sources_used": 2, "sources_total": 3,
-                  "verdict": "undetermined", "verdict_label": "Undetermined",
-                  "verdict_note": "only 2 of 3 sources gave a score, so the verdict cannot be more than Undetermined" }
+  "assessment": { "score_min": 0, "score_max": 100, "average": 25, "sources_used": 2, "sources_total": 3,
+                  "verdict": "likely_safe", "verdict_label": "Likely safe", "verdict_note": null }
 }
 ```
 
@@ -101,48 +100,67 @@ Other responses, always in the same format `{"error": "...", "input": "..."}` (`
 
 `GET /api/v1/health` returns `{"status": "ok"}`.
 
-## 4a. Scores and verdict (Milestone 3)
+## 4a. Scores and verdict (Milestone 3, rebuilt 2026-11-09)
 
-After the three sources have been asked, each source's result becomes a **score from 0 to 100**: **0 = definitely malware, 100 = definitely not malware**.
-The scores are rough guesses from weak signals. Each source block carries `score` (integer, or `null`) and `score_reason` (a plain sentence). Old fields are unchanged.
+After the three sources have been asked, each source's result becomes a **score from 0 to 100**: **0 = definitely safe, 100 = definitely malware**.
+Each source block carries `score` (integer, or `null`) and `score_reason` (a plain sentence listing the signals that fired). Old fields are unchanged.
 
-| Source and status | Score | Reason |
-|---|---|---|
-| any source, `error` | `null` (no score) | A failure says nothing about the name. The source is **left out** of the average. |
-| any source, `not_found` | 50 | A real answer, but with little meaning (RDAP also says it for subdomains and for `.de` / `.io`), so it is neutral. |
-| dns, `ok`, has an A or AAAA record | 60 | Resolving is weak evidence: malware names resolve too. |
-| dns, `ok`, no A and no AAAA record | 40 | The name exists but points nowhere, which is slightly odd. |
-| rdap, `ok`, registered under 30 days ago | 15 | Newly registered names are a classic warning sign. |
-| rdap, `ok`, 30 days up to 1 year | 40 | Still young. |
-| rdap, `ok`, 1 year up to 5 years | 70 | Established. |
-| rdap, `ok`, 5 years or more | 90 | Long-lived names are rarely throw-away malware names. |
-| rdap, `ok`, no registration date | 50 | Nothing to judge by. |
-| crtsh, `ok`, first certificate under 30 days ago | 25 | A brand-new certificate history is a warning sign. |
-| crtsh, `ok`, 30 days up to 1 year | 50 | Neutral. |
-| crtsh, `ok`, 1 year or more | 75 | A long certificate history suggests an established site. |
+**These are risk indicators from public registration facts, not a malware test.** The signals measure how established a name looks and a few known warning signs.
+They cannot see reputation (blocklists, malware sightings), so an old name that was taken over can still look safe and a new innocent one can look risky.
+The page and the API must always present the verdict that way.
 
-"Years" are counted as 365 days. Age is measured against today's date (UTC) when the lookup runs.
+**Correction history (2026-11-09).** The first version had the scale the wrong way round (0 = malware), only three verdicts and a few fixed score bands.
+It is now flipped, has five verdicts and is built from signals. The API stays at `/api/v1`: the scoring fields were a few hours old and only this project's page and MCP server read them.
+Anything that read `score` or `verdict` earlier must read them again with the new meaning.
+
+**How a source's score is built.** Start at **50** and add the points of every signal that fired (positive = more malicious, negative = more safe), then keep the total between 0 and 100.
+`score_reason` lists them, for example `registered less than 30 days ago (+35); a hold status (+20)`. The points are starting guesses, tuned against real names (section 4b).
+
+| Source | Signal | Points | Reason |
+|---|---|---|---|
+| dns `ok` | has an A or AAAA record / has none | -10 / +10 | Resolving is weak evidence of an ordinary site; a name that points nowhere is odd. |
+| dns `ok` | an address is loopback, private, link-local, reserved or all zeros | +25 | Sinkholed, parked or internal addresses are not what a real public site uses. |
+| dns `ok` | lowest TTL of the A/AAAA records under 60 s | +15 | Very short TTLs are typical of fast-changing (fast-flux) hosting. |
+| dns `ok` | **name shape**: a punycode label (`xn--`) +10; digits are over 30 % of the first label +10; two or more hyphens +5; a label of 25 characters or more +5 (total capped at +20) | up to +20 | Generated and look-alike names often look like this. |
+| rdap `ok` | registered under 30 days / under 1 year / 1 to 5 years / 5 years or more ago | +35 / +10 / -20 / -40 | Newly registered names are a classic warning sign; long-lived ones are rarely throw-away. |
+| rdap `ok` | no registration date | 0 | Nothing to judge by. |
+| rdap `ok` | a status containing `hold` (`clientHold`, `serverHold`) | +20 | A registry or registrar has suspended the name. |
+| crtsh `ok` | first certificate under 30 days / under 1 year / 1 year or more ago | +25 / 0 / -25 | A brand-new certificate history is a warning sign; a long one suggests an established site. |
+| crtsh `ok` | **certificate gap**: registered 1 year or more ago but the first certificate is under 30 days old | +20 | A dormant name that suddenly gets certificates may have been revived or taken over. |
+| dns / rdap / crtsh `not_found` | the source answered "nothing known" | 55 / 50 / 60 | A real answer, so it gets a score. crt.sh (no certificate ever) and DNS (name does not exist) lean slightly towards risk; RDAP also says it for subdomains and for `.de` / `.io`, so it stays neutral. |
+| any source, `error` | no score (`null`) | | A failure says nothing about the name. The source is **left out** of the average. |
+
+"Years" are counted as 365 days. Age is measured against today's date (UTC) when the lookup runs. The certificate gap needs the RDAP date, so it only applies when RDAP answered with a registration date.
 
 **Average.** The average of the scores that exist, **rounded to a whole number** (a .5 rounds up). `sources_used` says how many scores were averaged out of `sources_total` (3).
 
-**Verdict** (decided from the rounded average, **but only when all three sources gave a score**):
+**Verdict** (decided from the rounded average):
 
 | Average | `verdict` | `verdict_label` |
 |---|---|---|
-| 0 to 40 | `likely_malware` | Likely malware |
-| 41 to 60 | `undetermined` | Undetermined |
-| 61 to 100 | `likely_safe` | Likely safe |
+| 0 to 30 | `definitely_safe` | Definitely safe |
+| 31 to 45 | `likely_safe` | Likely safe |
+| 46 to 55 | `undetermined` | Undetermined |
+| 56 to 70 | `likely_malware` | Likely malware |
+| 71 to 100 | `definitely_malware` | Definitely malware |
 
-**All three sources are needed for a firm verdict.** If `sources_used` is less than `sources_total`, the verdict is always `undetermined`, whatever the average is,
-and `verdict_note` says why. Reason: a flaky source (crt.sh often fails) must not flip a name between "likely malware" and "undetermined" from one run to the next.
-The average and the scores stay as they are, so the facts are still visible. `verdict_note` is `null` when all three scored.
+The bands fit what the signals can produce: with all three sources the safest possible average is 25 (old registration, old certificates, resolves) and a name that is new on every count reaches the high 90s.
+There is no strong sign of safety, only the absence of warning signs, so "definitely safe" means "old, established and consistent", not "proven harmless".
 
-There is deliberately no "definitely" verdict: three weak signals cannot support one. (The first request named five verdicts; three were chosen with the project owner on 2026-11-09.)
+**"Definitely" needs all three sources.** If `sources_used` is less than `sources_total` and the average falls in a "definitely" band, the verdict is lowered one step to the matching "likely"
+(`definitely_safe` becomes `likely_safe`, `definitely_malware` becomes `likely_malware`) and `verdict_note` says why. All other verdicts are unaffected by a missing source.
+`verdict_note` is `null` unless a verdict was lowered.
 
 **No score at all.** If no source produced a score (only possible when every source ended in `error`) the answer is the existing 502 and carries no assessment.
-Otherwise at least one score exists. A `not_found` is a score of 50, so a name nobody knows lands on `undetermined`.
+Otherwise at least one score exists. A name nobody knows (three `not_found`) averages 55 and lands on `undetermined`.
 
-`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when all three sources scored).
+`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when no verdict was lowered).
+
+## 4b. Checking the scale against real names
+
+The points above are starting guesses. They are checked by running a small set of well-known good names and recently reported bad names through the real sources, saving the answers like the other recordings, and
+looking at whether the scores separate the two groups. The result and any change to the points are written in `docs/milestones.md`. A group of names this small shows whether the scale is plausible;
+it does not prove it is accurate.
 
 ## 5. Input rules
 
@@ -198,7 +216,7 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 
 **Milestone 3: scores and verdict.** Done when:
 1. Every source block has `score` and `score_reason`; the response has `assessment` as in section 4a; no old field changed.
-2. The average, the three verdicts and their band edges (40/41, 60/61) are tested with 3, 2 and 1 sources used (fewer than 3 is always Undetermined), as are each source's scoring, a failing source and the all-failed case.
+2. The average, the five verdicts and every band edge (30/31, 45/46, 55/56, 70/71) are tested, as is every signal in section 4a, including a "definitely" lowered to "likely" with fewer than 3 sources, as are each source's scoring, a failing source and the all-failed case.
 3. The page shows the three scores, the average, the verdict and the caveat.
 4. `design.md` and the README match the code; merged to `main` through a pull request.
 

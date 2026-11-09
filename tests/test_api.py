@@ -83,13 +83,14 @@ def test_every_source_has_a_score_and_the_answer_has_an_assessment(client, mock)
     assessment = body["assessment"]
     assert assessment["sources_used"] == 3 and assessment["sources_total"] == 3
     assert assessment["score_min"] == 0 and assessment["score_max"] == 100
-    assert assessment["verdict"] == "likely_safe" and assessment["verdict_note"] is None  # example.com: old name, old certificates
+    assert assessment["average"] == 25 and assessment["verdict"] == "definitely_safe"  # example.com: resolves, registered 1995, old certificates
+    assert assessment["verdict_note"] is None
 
 
 def test_unknown_name_is_undetermined(client, mock):
     replay_all(mock, "unknown")
     assessment = client.get(UNKNOWN).get_json()["assessment"]
-    assert assessment["average"] == 50 and assessment["verdict"] == "undetermined"
+    assert assessment["average"] == 55 and assessment["verdict"] == "undetermined"  # (55 + 50 + 60) / 3
 
 
 def test_a_failing_source_has_a_null_score_and_is_not_averaged(client, mock):
@@ -99,7 +100,8 @@ def test_a_failing_source_has_a_null_score_and_is_not_averaged(client, mock):
     body = client.get(HIT).get_json()
     assert body["sources"]["crtsh"]["score"] is None
     assert body["assessment"]["sources_used"] == 2 and body["assessment"]["sources_total"] == 3
-    assert body["assessment"]["verdict"] == "undetermined" and "2 of 3" in body["assessment"]["verdict_note"]
+    # (40 + 10) / 2 = 25 would be "definitely safe", but with only 2 of 3 sources it is lowered to "likely safe"
+    assert body["assessment"]["verdict"] == "likely_safe" and "2 of 3" in body["assessment"]["verdict_note"]
 
 
 def test_all_failed_answer_has_no_assessment(client, mock):
