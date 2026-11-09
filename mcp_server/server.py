@@ -50,16 +50,23 @@ def lookup_domain(name: str) -> dict:
     """Look up facts about a DNS domain name through the IOC portal.
 
     Input: one domain name such as "example.com" (not an IP address, URL or hash).
-    Output: {"ioc": {...}, "sources": {"dns": ..., "rdap": ..., "crtsh": ...}, "cache_age_seconds": {...}}.
+    Output: {"ioc": {...}, "sources": {"dns": ..., "rdap": ..., "crtsh": ...}, "assessment": {...}, "cache_age_seconds": {...}}.
     Each source answers independently with status "ok", "not_found" or "error", plus its data:
       - dns   (Google Public DNS): A, AAAA, NS, MX and TXT records with their TTLs.
       - rdap  (rdap.org, then the registry): registrar, registered/expires/last-changed dates, statuses, nameservers.
       - crtsh (crt.sh certificate transparency): certificate count, first/last seen, issuers, names on the certificates.
+    Each source also has "score" (0 to 100, or null after an error) and "score_reason" (the signals that fired).
+    The scale is 0 = definitely safe, 100 = definitely malware.
+    "assessment" has the average score, how many sources were scored ("sources_used" of "sources_total"), the verdict
+    ("verdict", "verdict_label": definitely safe, likely safe, undetermined, likely malware, definitely malware)
+    and "verdict_note" (text when a "definitely" verdict was lowered because a source gave no score, else null).
     "cache_age_seconds" lists, per source, how old a cached answer is; a source missing from it was fetched fresh.
-    If all three sources fail the answer says so and still carries each source's error.
+    If fewer than 2 of the 3 sources answer, the backend answers 502: the result carries an "error" message and each
+    source's block, but no "assessment" and no scores.
     A fresh lookup can take up to about a minute because crt.sh is slow.
 
-    These are facts only. Do not call a name safe or malicious on the strength of them.
+    The score and verdict are the portal's rough risk indicator from public registration facts, not a malware test.
+    Report them as the portal gave them. Do not add a verdict, a score or a conclusion of your own.
     Do not look up internal or private names: the lookup is sent to outside services.
     An invalid name (IP address, URL, single label, bad characters) is returned as a tool error.
     """
