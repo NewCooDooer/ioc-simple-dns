@@ -31,8 +31,22 @@ to add or fill in any value. If a value is not in the tool result, write "not re
   "Definitely safe" means old and consistent, not proven harmless.
 
 ## Output (identical on every run)
-For each name, produce exactly these sections in this order, with these headings and columns.
-Never skip a section. If a section has no data, write the reason on one line (see Failures).
+Every answer has two parts, in this order: one Summary table, then one detail block per name.
+Use these headings and columns exactly. Never skip a section. If a section has no data, write the reason on one line (see Failures).
+
+### Summary
+One row per name the user gave, in the order given, even when there is only one name.
+| Name | Score | Verdict | Reasons |
+|---|---|---|---|
+| <name as given> | <average> | <verdict_label> | dns: <score_reason>; rdap: <score_reason>; crtsh: <score_reason> |
+
+- Score is the `average` from `assessment`, a number from 0 to 100 (0 = definitely safe, 100 = definitely malware).
+- Reasons lists each source in the order dns, rdap, crtsh with its `score_reason` copied as returned.
+  For a source with an error write `dns: no score (<code>)`. If `verdict_note` is not null, add `Note: <verdict_note>` at the end.
+- A name with no score takes `-` in Score. Verdict and Reasons then follow the Failures section.
+- Under the table write once: "Scale: 0 = definitely safe, 100 = definitely malware. A rough risk indicator from public facts, not a malware test."
+
+Then, for each name in the same order, the detail block:
 
 ### <name as given>
 **Lookup:** value `<ioc.value>` · <n> ok, <n> not_found, <n> error · Cache: dns <age in seconds or fresh>, rdap <age or fresh>, crtsh <age or fresh>
@@ -88,11 +102,12 @@ If the user gave several names, repeat the whole block per name, in the order gi
 - A source has `status: not_found`: in its section write "No record: <source> has nothing for this name."
   This is an answer, not a failure, and it has a score.
 - Two or three sources failed (the tool returns an `error` such as "too few sources answered", with no `assessment`):
-  write "Not graded: fewer than 2 of 3 sources answered." under Assessment, give the error message as returned,
+  in the Summary row write Score `-`, Verdict "Not graded", Reasons the error message as returned.
+  In the detail block write "Not graded: fewer than 2 of 3 sources answered." under Assessment,
   and fill Source status and the data sections from the source blocks that did answer.
 - The tool refuses the value (IP address, URL, single word, bad characters, empty):
-  write only "Not looked up: <value as given>: <the tool's error message>" and ask for a plain domain name.
-  Do not fix the value and try again.
+  in the Summary row write Score `-`, Verdict "Not looked up", Reasons the tool's error message as returned.
+  Give that name no detail block. Ask for a plain domain name. Do not fix the value and try again.
 - The tool says it cannot reach the backend or that `BACKEND_URL` is not set: call `health` once,
   report its result or error as returned, and tell the user to start the backend (`python -m backend.app`).
   Report no lookup data.
