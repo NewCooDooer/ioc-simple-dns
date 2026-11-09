@@ -105,7 +105,7 @@ def test_name_shape_is_capped_at_20():
 # ---- RDAP signals ----
 
 def test_rdap_age_edges():
-    cases = {0: 85, 29: 85, 30: 60, 364: 60, 365: 30, 1824: 30, 1825: 10, 10000: 10}
+    cases = {0: 85, 29: 85, 30: 70, 364: 70, 365: 30, 1824: 30, 1825: 10, 10000: 10}
     for days, expected in cases.items():
         assert score_rdap(rdap_data(days), TODAY)[0] == expected, days
     assert score_rdap(rdap_data(None), TODAY)[0] == 50
@@ -124,7 +124,7 @@ def crt_data(days):
 
 
 def test_crtsh_age_edges():
-    cases = {0: 75, 29: 75, 30: 50, 364: 50, 365: 25, 4000: 25}
+    cases = {0: 75, 29: 75, 30: 60, 364: 60, 365: 25, 4000: 25}
     for days, expected in cases.items():
         assert score_crtsh(crt_data(days), TODAY, None)[0] == expected, days
 
@@ -136,7 +136,7 @@ def test_a_crtsh_date_without_a_timezone_works():
 def test_certificate_gap():
     assert score_crtsh(crt_data(5), TODAY, days_ago(400))[0] == 95  # 50 + 25 + 20
     assert score_crtsh(crt_data(5), TODAY, days_ago(364))[0] == 75  # registered under a year ago: no gap
-    assert score_crtsh(crt_data(31), TODAY, days_ago(4000))[0] == 50  # first certificate not new: no gap
+    assert score_crtsh(crt_data(31), TODAY, days_ago(4000))[0] == 60  # first certificate not new: no gap (only the under-1-year +10)
     assert score_crtsh(crt_data(5), TODAY, None)[0] == 75  # RDAP gave no date: no gap
 
 

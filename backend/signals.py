@@ -77,7 +77,7 @@ def score_rdap(data, today):
         if days < 30:
             points.append((35, "registered less than 30 days ago"))
         elif days < 365:
-            points.append((10, "registered less than 1 year ago"))
+            points.append((20, "registered less than 1 year ago"))
         elif days < 5 * 365:
             points.append((-20, "registered 1 to 5 years ago"))
         else:
@@ -99,7 +99,7 @@ def score_crtsh(data, today, registered):
     if days < 30:
         points.append((25, "first certificate issued less than 30 days ago"))
     elif days < 365:
-        points.append((0, "first certificate issued less than 1 year ago"))
+        points.append((10, "first certificate issued less than 1 year ago"))
     else:
         points.append((-25, "first certificate issued 1 year or more ago"))
     if registered and age_in_days(registered, today) >= 365 and days < 30:

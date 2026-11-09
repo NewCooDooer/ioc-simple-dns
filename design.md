@@ -122,10 +122,10 @@ Anything that read `score` or `verdict` earlier must read them again with the ne
 | dns `ok` | an address is loopback, private, link-local, reserved or all zeros | +25 | Sinkholed, parked or internal addresses are not what a real public site uses. |
 | dns `ok` | lowest TTL of the A/AAAA records under 60 s | +15 | Very short TTLs are typical of fast-changing (fast-flux) hosting. |
 | dns `ok` | **name shape**: a punycode label (`xn--`) +10; digits are over 30 % of the first label +10; two or more hyphens +5; a label of 25 characters or more +5 (total capped at +20) | up to +20 | Generated and look-alike names often look like this. |
-| rdap `ok` | registered under 30 days / under 1 year / 1 to 5 years / 5 years or more ago | +35 / +10 / -20 / -40 | Newly registered names are a classic warning sign; long-lived ones are rarely throw-away. |
+| rdap `ok` | registered under 30 days / under 1 year / 1 to 5 years / 5 years or more ago | +35 / +20 / -20 / -40 | Newly registered names are a classic warning sign; long-lived ones are rarely throw-away. |
 | rdap `ok` | no registration date | 0 | Nothing to judge by. |
 | rdap `ok` | a status containing `hold` (`clientHold`, `serverHold`) | +20 | A registry or registrar has suspended the name. |
-| crtsh `ok` | first certificate under 30 days / under 1 year / 1 year or more ago | +25 / 0 / -25 | A brand-new certificate history is a warning sign; a long one suggests an established site. |
+| crtsh `ok` | first certificate under 30 days / under 1 year / 1 year or more ago | +25 / +10 / -25 | A brand-new certificate history is a warning sign; a long one suggests an established site. |
 | crtsh `ok` | **certificate gap**: registered 1 year or more ago but the first certificate is under 30 days old | +20 | A dormant name that suddenly gets certificates may have been revived or taken over. |
 | dns / rdap / crtsh `not_found` | the source answered "nothing known" | 55 / 50 / 60 | A real answer, so it gets a score. crt.sh (no certificate ever) and DNS (name does not exist) lean slightly towards risk; RDAP also says it for subdomains and for `.de` / `.io`, so it stays neutral. |
 | any source, `error` | no score (`null`) | | A failure says nothing about the name. The source is **left out** of the average. |
@@ -159,7 +159,7 @@ Otherwise at least one score exists. A name nobody knows (three `not_found`) ave
 ## 4b. Checking the scale against real names
 
 The points above are starting guesses. They are checked by running a small set of well-known good names and recently reported bad names through the real sources, saving the answers like the other recordings, and
-looking at whether the scores separate the two groups. The result and any change to the points are written in `docs/milestones.md`. A group of names this small shows whether the scale is plausible;
+looking at whether the scores separate the two groups. The result and any change to the points are written in `docs/milestones.md` (first run: 2026-11-09, 12 good and 12 reported-phishing names). A group of names this small shows whether the scale is plausible;
 it does not prove it is accurate.
 
 ## 5. Input rules
