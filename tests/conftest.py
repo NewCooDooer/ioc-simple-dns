@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 import responses
 
+from backend import cache
 from backend.app import app
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -30,6 +31,12 @@ def replay_all(mock, case, crtsh_case=None):
     replay(mock, "dns", case)
     replay(mock, "rdap", case)
     replay(mock, "crtsh", crtsh_case or case)
+
+
+@pytest.fixture(autouse=True)
+def empty_cache():
+    """Start every test with an empty cache, so one test's answers can never leak into the next. (autouse = no test has to ask for it.)"""
+    cache.clear_cache()
 
 
 @pytest.fixture

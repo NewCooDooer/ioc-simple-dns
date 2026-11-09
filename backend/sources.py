@@ -8,6 +8,8 @@ import os
 
 import requests
 
+from backend import cache
+
 # The addresses of the real services. They can be changed with environment variables, only to make a source
 # fail on purpose (for example CRTSH_URL=http://127.0.0.1:9/ gives "connection refused").
 DNS_URL = os.environ.get("DNS_URL", "https://dns.google/resolve")
@@ -42,6 +44,18 @@ def error_result(code, message):
     return {"status": "error", "data": None, "error": {"code": code, "message": message}}
 
 
+def max_age(response):
+    """Read the number of seconds from a reply's 'Cache-Control: ..., max-age=300' header. None if there is none."""
+    for part in response.headers.get("Cache-Control", "").split(","):
+        part = part.strip().lower()
+        if part.startswith("max-age="):
+            try:
+                return int(part[len("max-age="):])
+            except ValueError:
+                return None
+    return None
+
+
 def fetch(label, url, timeout, params=None, headers=None):
     """Send one web request.
 
@@ -63,17 +77,44 @@ def fetch(label, url, timeout, params=None, headers=None):
 # ---- source 1: Google DNS ----
 
 def ask_dns(name):
-    """Ask Google DNS for the A, AAAA, NS, MX and TXT records of a name."""
+    """Google DNS result for a name, from the cache if a fresh copy exists. Google's terms say we may not keep an
+    answer longer than its Cache-Control header allows, so the time to keep comes from Google's replies.
+
+    Returns TWO things: (result, age). The age is the seconds since the result was fetched if it came from the cache,
+    or None if it was just fetched. (The three ask_... functions all work this way.)"""
+    cached = cache.lookup("dns", name)
+    if cached is not None:
+        return cached
+    result, keep_seconds = fetch_dns(name)
+    cache.store("dns", name, result, keep_seconds)  # store() ignores errors and a time of 0
+    return result, None
+
+
+def fetch_dns(name):
+    """Ask Google DNS for the A, AAAA, NS, MX and TXT records of a name.
+
+    Returns TWO things: the result, and how many seconds it may be kept. That is the SHORTEST max-age of the replies
+    we used; if any reply had no max-age, it is 0 (do not keep it).
+    """
     data = {"resolver": "dns.google", "rcode": "NOERROR"}
+    keep_seconds = None
 
     for record_type, number in RECORD_TYPES.items():
         response, problem = fetch("Google DNS", DNS_URL, SOURCE_TIMEOUT, params={"name": name, "type": number})
         if problem is not None:
-            return problem
+            return problem, 0
 
         # The reply arrived, but it might still be a failure (HTTP status 400 or higher).
         if response.status_code != 200:
-            return error_result("upstream_error", f"Google DNS returned HTTP {response.status_code}")
+            return error_result("upstream_error", f"Google DNS returned HTTP {response.status_code}"), 0
+
+        age = max_age(response)
+        if age is None:
+            keep_seconds = 0
+        elif keep_seconds is None:
+            keep_seconds = age
+        else:
+            keep_seconds = min(keep_seconds, age)
 
         # Read the reply. If it is not what we expect, report that instead of crashing.
         try:
@@ -84,21 +125,34 @@ def ask_dns(name):
                 if item.get("type") == number:  # keep only the kind of record we asked for
                     records.append({"value": item["data"], "ttl": item["TTL"]})
         except (ValueError, KeyError, TypeError, AttributeError):
-            return error_result("invalid_response", "Google DNS returned a response we could not parse")
+            return error_result("invalid_response", "Google DNS returned a response we could not parse"), 0
 
         if status == 3:
-            return not_found_result()
+            return not_found_result(), keep_seconds
         if status != 0:
-            return error_result("upstream_error", f"Google DNS returned status {status}")
+            return error_result("upstream_error", f"Google DNS returned status {status}"), 0
 
         data[record_type] = records
 
-    return ok_result(data)
+    return ok_result(data), keep_seconds
 
 
 # ---- source 2: RDAP (who registered the name, and when) ----
 
 def ask_rdap(name):
+    """RDAP result for a name, from the cache if a fresh copy exists. 'Not found' is kept for less time than a record."""
+    cached = cache.lookup("rdap", name)
+    if cached is not None:
+        return cached
+    result = fetch_rdap(name)
+    if result["status"] == "ok":
+        cache.store("rdap", name, result, cache.RDAP_OK_SECONDS)
+    elif result["status"] == "not_found":
+        cache.store("rdap", name, result, cache.RDAP_NOT_FOUND_SECONDS)
+    return result, None  # an error is not stored (and store() would refuse it anyway)
+
+
+def fetch_rdap(name):
     """Ask rdap.org for the registration record. rdap.org redirects us to the right registry; requests follows that by itself."""
     response, problem = fetch("RDAP", f"{RDAP_URL}/domain/{name}", SOURCE_TIMEOUT, headers={"Accept": "application/rdap+json"})
     if problem is not None:
@@ -162,6 +216,19 @@ def find_registrar(body):
 # ---- source 3: crt.sh (which certificates were issued for the name) ----
 
 def ask_crtsh(name):
+    """crt.sh result for a name, from the cache if a fresh copy exists. crt.sh is the slowest source, so a hit saves the most."""
+    cached = cache.lookup("crtsh", name)
+    if cached is not None:
+        return cached
+    result = fetch_crtsh(name)
+    if result["status"] == "ok":
+        cache.store("crtsh", name, result, cache.CRTSH_OK_SECONDS)
+    elif result["status"] == "not_found":
+        cache.store("crtsh", name, result, cache.CRTSH_NOT_FOUND_SECONDS)
+    return result, None
+
+
+def fetch_crtsh(name):
     """Ask crt.sh for every certificate issued for a name, and summarize them. crt.sh is slow and often fails."""
     response, problem = fetch("crt.sh", f"{CRTSH_URL}/", CRTSH_TIMEOUT, params={"q": name, "output": "json"})
     if problem is not None:

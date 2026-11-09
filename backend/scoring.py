@@ -90,7 +90,10 @@ def add_scores(sources, today):
     """
     scores = []
     for key, block in sources.items():
+        # Work on a copy: a cached result is shared between requests, so it must never be changed.
+        block = dict(block)
         block["score"], block["score_reason"] = score_source(key, block, today)
+        sources[key] = block
         scores.append(block["score"])
 
     average, used = average_of(scores)

@@ -39,11 +39,12 @@ def domain(name):
 
     # Step 2: ask the three sources, one after another, in the order they are written here.
     # (Each ask_... function never crashes: a problem comes back as an error result.)
-    sources = {
-        "dns": ask_dns(clean_name),
-        "rdap": ask_rdap(clean_name),
-        "crtsh": ask_crtsh(clean_name),
-    }
+    # Each ask_... returns TWO things: the result, and its age in seconds if it came from the cache (None if fresh).
+    dns, dns_age = ask_dns(clean_name)
+    rdap, rdap_age = ask_rdap(clean_name)
+    crtsh, crtsh_age = ask_crtsh(clean_name)
+    sources = {"dns": dns, "rdap": rdap, "crtsh": crtsh}
+    ages = {"dns": dns_age, "rdap": rdap_age, "crtsh": crtsh_age}
 
     # Step 3: if EVERY source ended in an error, answer 502. Otherwise answer 200 with whatever we have.
     all_failed = True
@@ -59,7 +60,15 @@ def domain(name):
         "sources": sources,
         "assessment": add_scores(sources, datetime.now(timezone.utc).date()),
     }
-    return jsonify(answer)
+    response = jsonify(answer)
+
+    # Step 4: say which sources came from the cache. The body stays exactly as the sources gave it; the news goes in
+    # headers, one per cached source, for example  X-Cache-Age-rdap: 412  (fetched 412 s ago).
+    # A source with no such header was just fetched. (An error is never cached, so it never gets one.)
+    for key, age in ages.items():
+        if age is not None:
+            response.headers[f"X-Cache-Age-{key}"] = str(age)
+    return response
 
 
 @app.errorhandler(404)
