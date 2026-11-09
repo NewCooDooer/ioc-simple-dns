@@ -158,14 +158,16 @@ Non-English letters become punycode (`bücher.de` becomes `xn--bcher-kva.de`). T
 | **RDAP** `https://rdap.org/domain/{name}` ([about](https://about.rdap.org/)) | no | **10 requests per 10 s**, then 429 | 302 redirects to the registry (must be followed); 404 = unknown, or a top-level domain it does not cover (for example `.de`, `.io`); 403 = blocked for abuse. No formal terms and nothing about caching (its 302 reply is marked `public, max-age=28800`). |
 | **crt.sh** `https://crt.sh/?q={name}&output=json` | no | None on its own pages. **Unconfirmed:** a 2020 post by the operator says requests are throttled at 60 per IP per minute ([post](https://groups.google.com/g/crtsh/c/NZJntKrBdmg)), and a later report says 5 per minute; no current source confirms either. | No official terms found. Run by Sectigo. Unreliable: it often answers HTTP 502 and can take up to a minute (it timed out at 45 s on 2026-11-06). |
 
-Timeouts: Google and RDAP 10 s, crt.sh 60 s; the page waits up to 100 s. Lookups are **not private**: every name typed is sent to these outside services.
+Timeouts: Google and RDAP 10 s, crt.sh 60 s; the page waits up to 100 s.
+**One retry for crt.sh:** because crt.sh often fails at once with an HTTP 5xx (502, 503, ...), the backend asks again **one time** after such an answer. It does **not** retry a timeout
+(a second 60 s wait would pass the page's 100 s limit), a connection error, or any other status (404 and so on). If the second try also fails, the error is reported as before. Nothing in the API contract changes. Lookups are **not private**: every name typed is sent to these outside services.
 
 ## 7. Tests (Milestone 2)
 
 - `record.py` calls each real source once and saves **status and body only** into `tests/fixtures/`.
 - Tests replay those files through `requests` with `responses`; `pytest-socket` makes any real network connection fail. Proof: the suite also passes under an
   operating-system network block.
-- Cases: a **hit**, an **unknown** name, a **source error** (a real recorded crt.sh 502), all sources failing (502), invalid input (400), and a **simulated** timeout
+- Cases (crt.sh retry: a 502 followed by a hit gives `ok`; two 502s give `error` after exactly two requests; a timeout is asked only once): a **hit**, an **unknown** name, a **source error** (a real recorded crt.sh 502), all sources failing (502), invalid input (400), and a **simulated** timeout
   (labelled as simulated, since a real service cannot be asked to time out).
 
 ## 8. Secrets and values that must never leave the machine
@@ -234,7 +236,7 @@ The store is `backend/cache.py`; the `ask_...` functions in `backend/sources.py`
 No source rules caching out, so no source has an expiry of zero, except Google replies that lack a `max-age`.
 
 **Never cache an error.** `cache.store()` itself refuses any result whose status is `error`, so a slip in one source's code cannot cache a timeout, a 429 or a 502.
-(A "missing key" error cannot happen in this version, since no source uses a key; it would be an `error` and so not cached.) "Not found" is an answer and is cached, for the shorter times above.
+A crt.sh answer that is still an HTTP 5xx after its one retry (section 6) is an `error`, so it is not cached either. (A "missing key" error cannot happen in this version, since no source uses a key; it would be an `error` and so not cached.) "Not found" is an answer and is cached, for the shorter times above.
 
 **The key** is `(source, clean name)`. The name is the output of `check_name`: trimmed, one trailing dot dropped, lowercased, punycode. So `Example.COM`, ` example.com ` and `example.com.`
 share one entry, and two different names never do. It contains only the source's label and the name, never a secret.

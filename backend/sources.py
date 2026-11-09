@@ -234,6 +234,13 @@ def fetch_crtsh(name):
     if problem is not None:
         return problem
 
+    # crt.sh often fails at once with HTTP 502 or similar, and often works a moment later, so try ONE more time.
+    # (Timeouts and connection errors are not retried: a second 60 s wait would pass the page's 100 s limit.)
+    if response.status_code >= 500:
+        response, problem = fetch("crt.sh", f"{CRTSH_URL}/", CRTSH_TIMEOUT, params={"q": name, "output": "json"})
+        if problem is not None:
+            return problem
+
     if response.status_code != 200:
         return error_result("upstream_error", f"crt.sh returned HTTP {response.status_code}")
 

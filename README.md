@@ -47,7 +47,7 @@ Terminal 2, the page:
 streamlit run frontend/page.py --server.port 8510
 ```
 
-Open http://localhost:8510, type a name such as `example.com`, and press Enter. Be patient: crt.sh is slow and often shows an error.
+Open http://localhost:8510, type a name such as `example.com`, and press Enter. Be patient: crt.sh is slow and often shows an error. The backend asks crt.sh a second time after a quick HTTP 5xx answer (not after a timeout).
 
 | Setting | Default | Meaning |
 |---|---|---|

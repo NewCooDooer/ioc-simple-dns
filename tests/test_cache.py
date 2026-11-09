@@ -174,7 +174,9 @@ def test_a_crtsh_502_is_not_cached(client, mock, clock):
     assert first["sources"]["crtsh"]["status"] == "error"
 
     second = look_up(client, "example.com")
-    assert requests_sent(mock, "crtsh") == 2  # the error was not remembered: crt.sh was asked again
+    # Each lookup asks crt.sh twice (one retry after an HTTP 5xx), so 2 lookups = 4 requests. The error was not remembered:
+    # the second lookup asked crt.sh again instead of using a stored copy.
+    assert requests_sent(mock, "crtsh") == 4
     assert cache_age(second, "crtsh") is None
     assert requests_sent(mock, "rdap") == 2  # the good answers from the other sources were cached
     assert cache_age(second, "rdap") is not None
