@@ -112,6 +112,62 @@ def test_all_failed_answer_has_no_assessment(client, mock):
     assert "assessment" not in body
 
 
+# ---- at least 2 of the 3 sources must answer: 0, 1, 2 and 3 failures ----
+
+TOO_FEW = "too few sources answered: at least 2 of 3 must answer"
+
+
+def test_two_failures_give_a_502_with_the_surviving_sources_facts_and_no_verdict(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "crtsh", "error_502")
+    mock.add(responses.GET, ANY_RDAP, status=503, body="unavailable")
+    response = client.get(HIT)
+    body = response.get_json()
+    assert response.status_code == 502
+    assert body["error"] == TOO_FEW and body["input"] == "example.com"
+    assert statuses(body) == {"dns": "ok", "rdap": "error", "crtsh": "error"}
+    assert len(body["sources"]["dns"]["data"]["A"]) > 0  # the one good source's facts are not lost
+    assert "assessment" not in body and "ioc" not in body
+    assert "score" not in body["sources"]["dns"]  # nothing was graded
+
+
+def test_one_failure_is_still_graded(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    replay(mock, "crtsh", "error_502")
+    response = client.get(HIT)
+    assert response.status_code == 200
+    assert response.get_json()["assessment"]["sources_used"] == 2
+
+
+def test_three_failures_give_the_same_502(client, mock):
+    mock.add(responses.GET, ANY_DNS, status=502, body="x")
+    mock.add(responses.GET, ANY_RDAP, status=502, body="x")
+    mock.add(responses.GET, ANY_CRTSH, status=502, body="x")
+    response = client.get(HIT)
+    assert response.status_code == 502 and response.get_json()["error"] == TOO_FEW
+
+
+def test_two_not_found_answers_and_one_failure_are_graded(client, mock):
+    replay(mock, "dns", "unknown")  # not_found is an answer
+    replay(mock, "rdap", "unknown")  # not_found is an answer
+    mock.add(responses.GET, ANY_CRTSH, status=502, body="x")  # the one failure
+    response = client.get(UNKNOWN)
+    body = response.get_json()
+    assert response.status_code == 200
+    assert statuses(body) == {"dns": "not_found", "rdap": "not_found", "crtsh": "error"}
+    assert body["assessment"]["sources_used"] == 2 and body["assessment"]["average"] == 53  # (55 + 50) / 2 = 52.5
+
+
+def test_one_not_found_answer_is_not_enough(client, mock):
+    mock.add(responses.GET, ANY_DNS, status=502, body="x")
+    mock.add(responses.GET, ANY_RDAP, status=502, body="x")
+    replay(mock, "crtsh", "unknown")  # the only answer, and it is "not found"
+    response = client.get(UNKNOWN)
+    assert response.status_code == 502
+    assert response.get_json()["sources"]["crtsh"]["status"] == "not_found"
+
+
 # ---- a name that no source knows ----
 
 def test_an_unknown_name_is_not_found_everywhere_but_still_200(client, mock):
@@ -211,7 +267,7 @@ def test_simulated_all_sources_failing_returns_502(client, mock):
     response = client.get(HIT)
     body = response.get_json()
     assert response.status_code == 502
-    assert body["error"] == "all sources failed" and body["input"] == "example.com"
+    assert body["error"] == TOO_FEW and body["input"] == "example.com"
     assert statuses(body) == {"dns": "error", "rdap": "error", "crtsh": "error"}
 
 
