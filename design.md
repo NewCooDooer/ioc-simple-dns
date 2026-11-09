@@ -236,7 +236,7 @@ The store is `backend/cache.py`; the `ask_...` functions in `backend/sources.py`
 No source rules caching out, so no source has an expiry of zero, except Google replies that lack a `max-age`.
 
 **Never cache an error.** `cache.store()` itself refuses any result whose status is `error`, so a slip in one source's code cannot cache a timeout, a 429 or a 502.
-(A "missing key" error cannot happen in this version, since no source uses a key; it would be an `error` and so not cached.) "Not found" is an answer and is cached, for the shorter times above.
+A crt.sh answer that is still an HTTP 5xx after its one retry (section 6) is an `error`, so it is not cached either. (A "missing key" error cannot happen in this version, since no source uses a key; it would be an `error` and so not cached.) "Not found" is an answer and is cached, for the shorter times above.
 
 **The key** is `(source, clean name)`. The name is the output of `check_name`: trimmed, one trailing dot dropped, lowercased, punycode. So `Example.COM`, ` example.com ` and `example.com.`
 share one entry, and two different names never do. It contains only the source's label and the name, never a secret.
