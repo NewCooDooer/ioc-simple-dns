@@ -138,6 +138,50 @@ def test_a_recorded_real_crtsh_502_shows_an_error_and_keeps_the_other_sources(cl
     assert len(body["sources"]["dns"]["data"]["A"]) > 0
 
 
+# ---- crt.sh is asked one more time after an HTTP 5xx, but not after a timeout ----
+
+def crtsh_calls(mock):
+    """How many requests went to crt.sh."""
+    return len([call for call in mock.calls if call.request.url.startswith("https://crt.sh/")])
+
+
+def test_crtsh_502_then_a_good_answer_is_ok(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    mock.add(responses.GET, ANY_CRTSH, status=502, body="bad gateway")  # first try fails
+    replay(mock, "crtsh", "hit")  # second try works (recorded real answer)
+    body = client.get(HIT).get_json()
+    assert body["sources"]["crtsh"]["status"] == "ok"
+    assert crtsh_calls(mock) == 2
+    assert body["assessment"]["sources_used"] == 3
+
+
+def test_crtsh_two_502s_is_an_error_after_exactly_two_requests(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    mock.add(responses.GET, ANY_CRTSH, status=502, body="bad gateway")
+    mock.add(responses.GET, ANY_CRTSH, status=503, body="unavailable")
+    crtsh = client.get(HIT).get_json()["sources"]["crtsh"]
+    assert crtsh["status"] == "error" and crtsh["error"]["message"] == "crt.sh returned HTTP 503"
+    assert crtsh_calls(mock) == 2
+
+
+def test_crtsh_timeout_is_not_retried(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    mock.add(responses.GET, ANY_CRTSH, body=requests.exceptions.ReadTimeout("simulated"))
+    assert client.get(HIT).get_json()["sources"]["crtsh"]["error"]["code"] == "timeout"
+    assert crtsh_calls(mock) == 1
+
+
+def test_crtsh_404_is_not_retried(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "rdap", "hit")
+    mock.add(responses.GET, ANY_CRTSH, status=404, body="not here")
+    assert client.get(HIT).get_json()["sources"]["crtsh"]["error"]["message"] == "crt.sh returned HTTP 404"
+    assert crtsh_calls(mock) == 1
+
+
 # ---- SIMULATED failures: built by hand, because a real service cannot be asked to fail on command ----
 
 def test_simulated_timeout_is_reported_as_timeout(client, mock):
