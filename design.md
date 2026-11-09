@@ -271,3 +271,20 @@ through the backend with a fake web that replays the recordings (no real request
 | **Total** | **184** | **46** |
 
 The run does not move time, so expiry is shown by the tests in `tests/test_cache.py` (a fake clock), not by the run.
+
+## 12. MCP server (lets Claude call the backend)
+
+`mcp_server/server.py` is a small local server built with the official MCP Python SDK (`mcp` on PyPI). Claude Desktop starts it and talks to it over stdio.
+It adds no new data and no new rules: it only wraps the two backend routes as tools, `lookup_domain` (the one IOC type the portal supports) and `health`.
+
+Decisions and reasons:
+- **It calls the backend API only, never a source.** The backend stays the one place that knows the sources, the validation and the failure rules, so the MCP server cannot drift from the contract in section 4.
+- **The backend address comes from the `BACKEND_URL` environment variable, with no default in code.** The address is configuration, not code. It is set in the Claude Desktop config, which lives on the user's machine and not in the repository. If it is missing, the server exits with a clear message.
+- **An invalid name or an unreachable backend is a tool error, not a crash.** Claude sees the message (for example "not a valid DNS name") and can correct the input. A 502 (all sources failed) is returned as data, because it still carries each source's error.
+- **Nothing but the protocol goes to stdout.** Over stdio, stdout is the channel to Claude, so any `print` would corrupt it. The server logs to stderr only.
+- **The wait is 100 seconds**, the same as the page, because a fresh lookup runs the sources one after another and crt.sh alone may take 60 seconds.
+- **No batch tool.** RDAP allows about 10 requests per 10 seconds and crt.sh is unreliable; Claude can call the single lookup several times.
+- **No key or token.** The backend needs none, so neither the server, its configuration nor any commit holds one.
+- **Sources report facts.** The tool description tells Claude not to call a name safe or malicious, and not to look up internal names, since lookups go to outside services.
+- **The server is started by its file path, not as a module (`python mcp_server\server.py`, not `python -m mcp_server.server`).** Claude Desktop ignored the `cwd` setting, so Python started in another folder and could not find the `mcp_server` package (`ModuleNotFoundError`, seen in the log). The file imports only installed packages, so the working directory does not matter.
+- **Checked in Claude Desktop (2026-11-09).** An IP address (`1.2.3.4`) shows the tool as failed with the backend's message ("IP addresses are not accepted"), and Claude explains it; the server keeps running.

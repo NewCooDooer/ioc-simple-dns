@@ -121,6 +121,23 @@ The two files in `bench/results/` are **generated** by the commands above (about
 
 To record fresh real answers (rarely needed; crt.sh may need many retries): `python record.py`, or just one case, for example `python record.py crtsh_error`.
 
+## Use from Claude Desktop (MCP)
+
+`mcp_server/server.py` lets Claude call the backend as tools (`lookup_domain`, `health`). Start the backend first (`python -m backend.app`), then add this to
+`claude_desktop_config.json` (use your own paths) and restart Claude Desktop:
+
+```json
+{"mcpServers": {"ioc-dns": {
+  "command": "<path>\\ioc-simple-dns\\.venv\\Scripts\\python.exe",
+  "args": ["<path>\\ioc-simple-dns\\mcp_server\\server.py"],
+  "env": {"BACKEND_URL": "http://127.0.0.1:8010"}}}}
+```
+
+`BACKEND_URL` is required; there is no default. Then ask Claude, for example, "look up example.com". No key is needed. See `design.md` section 12 for the decisions.
+
+If you already have other servers in the file, add `"ioc-dns": {...}` inside the existing `"mcpServers"` object (with a comma between entries); do not paste a second outer `{ }`.
+If the server shows as failed, open its log, `...\AppData\Local\Claude\logs\mcp-server-ioc-dns.log` (also behind "View logs" in Claude Desktop's settings), which shows the Python error.
+
 ## Files
 
 ```
@@ -130,6 +147,7 @@ backend/cache.py      the in-memory cache (what is kept, for how long)
 backend/app.py        the Flask web server and its routes
 bench/                the fixed run that counts outbound requests
 frontend/page.py      the Streamlit page
+mcp_server/server.py  the MCP server that lets Claude call the backend
 record.py             saves real answers for the tests (run by hand)
 tests/                the tests and the recorded answers (tests/fixtures/)
 design.md             the plan and the API contract
