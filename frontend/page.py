@@ -140,7 +140,7 @@ if submitted:
     if response.status_code == 400:
         st.warning(f"Invalid input: {body['error']}")
     elif response.status_code == 502:
-        st.error("Every source failed, so there is nothing to show.")
+        st.error("Not enough sources answered (at least 2 of 3 must), so there is no verdict. The sources below show what each one returned.")
         for key, block in body["sources"].items():
             show_source(key, block)
     elif response.status_code != 200:

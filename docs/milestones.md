@@ -492,3 +492,12 @@ Each time the code was restored (checked byte for byte) and all the tests passed
 - **What the scale cannot catch:** the 4 phishing names still scored "likely safe" were mostly older or hijacked sites. Registration facts cannot see reputation, so a hijacked old name looks safe.
   A reputation source (such as a blocklist lookup) would be the real next step; it is not part of this project yet.
 - Source failures: crt.sh failed for 5 of the 24 names, DNS for 2 and RDAP for 1, as expected; a failed source is left out, and "definitely" is lowered to "likely" when fewer than 3 sources scored.
+
+## Milestone 5: at least two sources must answer
+- Branch: `require-two-sources`. Rule (design.md section 4): if 2 or 3 sources end in `error`, the API answers 502 with the message
+  `too few sources answered: at least 2 of 3 must answer`, still includes the `sources` blocks, and carries no `assessment`. One failure is still graded. A `not_found` counts as an answer.
+- Before this, only three failures gave a 502 and a single surviving source was graded alone.
+- Evidence: 99 tests pass offline (new: 0, 1, 2 and 3 failures, a not-found counting as an answer, and a 502 that keeps the surviving source's facts). With the rule switched off on purpose, 4 tests fail.
+- Real run: Google DNS and RDAP pointed at a dead address (`DNS_URL`, `RDAP_URL`), crt.sh real: HTTP 502, `{dns: error, rdap: error, crtsh: ok}`, no assessment.
+  The page showed "Not enough sources answered (at least 2 of 3 must), so there is no verdict" and listed each source, including crt.sh's 45 certificates.
+

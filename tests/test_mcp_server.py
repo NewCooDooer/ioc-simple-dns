@@ -35,9 +35,9 @@ def test_invalid_name_is_a_tool_error_with_the_backend_message(mock):
 
 
 def test_all_sources_failed_is_returned_as_data(mock):
-    body = {"error": "all sources failed", "sources": {"dns": {"status": "error"}}}
+    body = {"error": "too few sources answered: at least 2 of 3 must answer", "sources": {"dns": {"status": "error"}}}
     mock.add(responses.GET, BACKEND + "/api/v1/domain/example.com", status=502, json=body)
-    assert server.lookup_domain("example.com")["error"] == "all sources failed"
+    assert server.lookup_domain("example.com")["error"].startswith("too few sources answered")
 
 
 def test_unreachable_backend_is_a_tool_error(mock):

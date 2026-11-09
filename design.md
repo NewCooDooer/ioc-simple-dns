@@ -1,6 +1,6 @@
 # IOC Enrichment Portal (DNS names), simple version: design
 
-Status: Milestone 4 (caching) · Written 2026-11-06, updated 2026-11-09 · Owner: Evan Murphy
+Status: Milestone 5 (two sources must answer) · Written 2026-11-06, updated 2026-11-09 · Owner: Evan Murphy
 
 This is a deliberately **small** version of an existing, finished project (https://github.com/NewCooDooer/ioc-enrichment-portal-dns).
 It meets the same assignment specs with the simplest code possible: plain functions, no `async`, no extras.
@@ -86,7 +86,8 @@ Every source block has `status`, `data` and, only on error, `error`:
 | `not_found` | the source answered "I know nothing about this name" |
 | `error` | we could not get an answer (`error.code` is `timeout`, `upstream_error` or `invalid_response`) |
 
-**`not_found` is an answer; `error` is not.** A failed source never changes the status code. The other sources still return.
+**`not_found` is an answer; `error` is not.** One failed source never changes the status code: the other two still return and the answer is graded from them.
+At least **2 of the 3 sources must answer** (`ok` or `not_found`); if 2 or 3 ended in `error` there is nothing reliable to grade, so the answer is a 502 (see below) and carries no verdict.
 In Milestone 1 only `dns` was present; Milestone 2 adds `rdap` and `crtsh` without renaming anything. The sources are asked in the order dns, rdap, crtsh.
 
 Other responses, always in the same format `{"error": "...", "input": "..."}` (`input` only when there is one):
@@ -94,7 +95,7 @@ Other responses, always in the same format `{"error": "...", "input": "..."}` (`
 | Status | When |
 |---|---|
 | 400 | the name is not a valid DNS name (an IP address, a URL, spaces, ...) |
-| 502 | **all** sources ended in `error` |
+| 502 | **2 or more** sources ended in `error`, so fewer than 2 answered. The message is `too few sources answered: at least 2 of 3 must answer`. The body also holds `sources`, so the facts of any source that did answer are not lost, but it holds **no** `assessment` and no scores. |
 | 404 | unknown address (including an empty name) |
 | 500 | an unexpected bug (details go to the log, not the answer) |
 
@@ -147,14 +148,14 @@ Anything that read `score` or `verdict` earlier must read them again with the ne
 The bands fit what the signals can produce: with all three sources the safest possible average is 25 (old registration, old certificates, resolves) and a name that is new on every count reaches the high 90s.
 There is no strong sign of safety, only the absence of warning signs, so "definitely safe" means "old, established and consistent", not "proven harmless".
 
-**"Definitely" needs all three sources.** If `sources_used` is less than `sources_total` and the average falls in a "definitely" band, the verdict is lowered one step to the matching "likely"
+**"Definitely" needs all three sources.** With exactly 2 sources used (`sources_used` is less than `sources_total`) and the average falls in a "definitely" band, the verdict is lowered one step to the matching "likely"
 (`definitely_safe` becomes `likely_safe`, `definitely_malware` becomes `likely_malware`) and `verdict_note` says why. All other verdicts are unaffected by a missing source.
 `verdict_note` is `null` unless a verdict was lowered.
 
-**No score at all.** If no source produced a score (only possible when every source ended in `error`) the answer is the existing 502 and carries no assessment.
-Otherwise at least one score exists. A name nobody knows (three `not_found`) averages 55 and lands on `undetermined`.
+**Too few sources.** Grading needs at least 2 sources to have answered. With 2 or 3 failures the answer is the 502 described in section 4 and carries no assessment, so `sources_used` is always 2 or 3.
+(Changed 2026-11-09: before, only three failures gave a 502 and a single surviving source was graded on its own.) A `not_found` is an answer and gets a score, so a name nobody knows (three `not_found`) averages 55 and lands on `undetermined`.
 
-`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when no verdict was lowered).
+`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 2 or 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when no verdict was lowered).
 
 ## 4b. Checking the scale against real names
 
@@ -229,6 +230,11 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 6. A fixed run of at least 20 lookups is counted before and after, per source, without real network access.
 7. Merged to `main` through a pull request that the owner reviews.
 
+**Milestone 5: at least two sources must answer.** Done when:
+1. Two or three sources in `error` give a 502 with the message and the `sources` blocks of section 4, and no `assessment`; one failure still gives a graded 200.
+2. Tests cover 0, 1, 2 and 3 failing sources, a `not_found` counting as an answer, and a 502 that still shows the surviving source's facts.
+3. The page shows the 502 as "not enough sources answered" and still lists each source; `design.md` and the README match the code; merged to `main` through a pull request.
+
 ## 10. How this differs from the full version
 
 Plain Flask and `requests` instead of FastAPI and async code; plain dictionaries instead of model classes; three small backend files instead of fifteen;
@@ -300,7 +306,7 @@ It adds no new data and no new rules: it only wraps the two backend routes as to
 Decisions and reasons:
 - **It calls the backend API only, never a source.** The backend stays the one place that knows the sources, the validation and the failure rules, so the MCP server cannot drift from the contract in section 4.
 - **The backend address comes from the `BACKEND_URL` environment variable, with no default in code.** The address is configuration, not code. It is set in the Claude Desktop config, which lives on the user's machine and not in the repository. If it is missing, the server exits with a clear message.
-- **An invalid name or an unreachable backend is a tool error, not a crash.** Claude sees the message (for example "not a valid DNS name") and can correct the input. A 502 (all sources failed) is returned as data, because it still carries each source's error.
+- **An invalid name or an unreachable backend is a tool error, not a crash.** Claude sees the message (for example "not a valid DNS name") and can correct the input. A 502 (too few sources answered) is returned as data, because it still carries each source's block and error.
 - **Nothing but the protocol goes to stdout.** Over stdio, stdout is the channel to Claude, so any `print` would corrupt it. The server logs to stderr only.
 - **The wait is 100 seconds**, the same as the page, because a fresh lookup runs the sources one after another and crt.sh alone may take 60 seconds.
 - **No batch tool.** RDAP allows about 10 requests per 10 seconds and crt.sh is unreliable; Claude can call the single lookup several times.

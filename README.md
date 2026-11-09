@@ -3,7 +3,7 @@
 A deliberately **small** version of the IOC Enrichment Portal, built step by step so that every line can be explained.
 It follows the same assignment specifications as the full version, with the simplest possible code: plain functions, no async, no extras.
 
-**Status: Milestone 4.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
+**Status: Milestone 5.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
 and crt.sh (which certificates were issued). If one source fails, the other two still return and the failed one says what went wrong.
 Each source gets a 0-100 score (0 = definitely safe, 100 = definitely malware) built from a few signals such as name age, odd addresses and a brand-new certificate on an old name; the scores are averaged, and the average gives a verdict (definitely safe, likely safe, undetermined, likely malware or definitely malware). "Definitely" needs all three sources to have scored. It is a risk indicator from public facts, not a malware test.
 Answers are **cached in memory** (each source for its own time, see [Caching](#caching)), and the backend says which sources came from the cache (in response headers; the JSON body is unchanged).
@@ -69,7 +69,7 @@ curl -s http://127.0.0.1:8010/api/v1/health
 ```
 
 Each source in the answer has a `status`: `ok`, `not_found` (the source answered "nothing known") or `error` (the check could not be completed).
-A failing source never hides the others; only when **all** sources fail does the API answer 502. Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
+One failing source never hides the others, but at least **2 of the 3 sources must answer**: if two or three fail, the API answers 502 with each source's block and no verdict. Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
 See [`design.md`](design.md) sections 4 and 4a for the full contract and the scoring rules.
 
 ## Caching
@@ -101,7 +101,7 @@ status number and body, never headers). `pytest-socket` makes any real network c
 sandbox-exec -p '(version 1)(allow default)(deny network*)' python -m pytest -v
 ```
 
-The tests cover a known name, an unknown name, a real recorded crt.sh 502, all sources failing (502), invalid input (400), and two failures that are
+The tests cover a known name, an unknown name, a real recorded crt.sh 502, two or more sources failing (502), invalid input (400), and two failures that are
 **simulated** (a timeout and an unreadable answer), because a real service cannot be asked to fail on command.
 
 The cache tests (`tests/test_cache.py`) show a hit, a miss, an expired entry (with a fake clock, so nothing waits) and errors that are not cached.
