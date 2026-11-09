@@ -5,7 +5,7 @@ It follows the same assignment specifications as the full version, with the simp
 
 **Status: Milestone 4.** Three real, keyless sources in one answer: Google DNS over HTTPS (where the name points), RDAP (who registered it and when)
 and crt.sh (which certificates were issued). If one source fails, the other two still return and the failed one says what went wrong.
-Each source gets a 0-100 score, the scores are averaged, and the average gives a verdict (likely malware, undetermined or likely safe). Only when all three sources scored can the verdict be more than undetermined.
+Each source gets a 0-100 score (0 = definitely safe, 100 = definitely malware) built from a few signals such as name age, odd addresses and a brand-new certificate on an old name; the scores are averaged, and the average gives a verdict (definitely safe, likely safe, undetermined, likely malware or definitely malware). "Definitely" needs all three sources to have scored. It is a risk indicator from public facts, not a malware test.
 Answers are **cached in memory** (each source for its own time, see [Caching](#caching)), and the backend says which sources came from the cache (in response headers; the JSON body is unchanged).
 Tests replay recorded real answers and run with the network off. The plan and the API contract are in [`design.md`](design.md);
 the evidence for each milestone is in [`docs/milestones.md`](docs/milestones.md).
@@ -69,7 +69,7 @@ curl -s http://127.0.0.1:8010/api/v1/health
 ```
 
 Each source in the answer has a `status`: `ok`, `not_found` (the source answered "nothing known") or `error` (the check could not be completed).
-A failing source never hides the others; only when **all** sources fail does the API answer 502. Each source also has a `score` (0 = definitely malware, 100 = definitely not malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
+A failing source never hides the others; only when **all** sources fail does the API answer 502. Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
 See [`design.md`](design.md) sections 4 and 4a for the full contract and the scoring rules.
 
 ## Caching
@@ -144,6 +144,8 @@ If the server shows as failed, open its log, `...\AppData\Local\Claude\logs\mcp-
 backend/validate.py   checks and cleans the typed name
 backend/sources.py    asks Google DNS, RDAP and crt.sh
 backend/cache.py      the in-memory cache (what is kept, for how long)
+backend/signals.py    the signals and points behind each source's score
+backend/scoring.py    the average and the five verdicts
 backend/app.py        the Flask web server and its routes
 bench/                the fixed run that counts outbound requests
 frontend/page.py      the Streamlit page

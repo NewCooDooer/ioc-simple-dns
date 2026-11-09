@@ -348,6 +348,7 @@ Each time the code was restored and all tests passed again.
 #3 "Milestone 2: three sources and recorded offline tests": https://github.com/NewCooDooer/ioc-simple-dns/pull/3
 
 ## Milestone 3: scores and verdict
+> **Correction (2026-11-09):** the scale described in this section was later flipped (0 = definitely safe, 100 = definitely malware), given five verdicts and rebuilt from signals. See "Milestone 3 correction" at the end of this file; `design.md` section 4a is current.
 - Branch: `add-scoring-and-verdict` (merged). Same stack as Milestone 2; new file `backend/scoring.py`.
 - What it does: each source's result becomes a 0-100 score (0 = definitely malware, 100 = definitely not malware); the scores are averaged and rounded;
   the average gives one of three verdicts (0-40 likely malware, 41-60 undetermined, 61-100 likely safe). Rules and reasons: `design.md` section 4a.
@@ -474,3 +475,20 @@ Each time the code was restored (checked byte for byte) and all the tests passed
 - The `ttl` inside cached DNS records is Google's value at fetch time, not counted down; the `X-Cache-Age-<source>` header says how old the result is.
 - The benchmark measures requests that would reach each source from a fixed list; it does not predict real-world savings.
 
+## Milestone 3 correction: flipped scale, five verdicts, signals, first calibration
+- Branch: `flip-scale-five-verdicts`.
+- What changed: the scale is now 0 = definitely safe, 100 = definitely malware (the first version had it the wrong way round). Five verdicts with bands 0-30 / 31-45 / 46-55 / 56-70 / 71-100.
+  Each source's score is built from signals (start at 50, add points): name age, odd addresses, very low TTL, name shape, a hold status, a brand-new certificate on an old name. `design.md` section 4a has every signal and its reason; the code is `backend/signals.py` and `backend/scoring.py`.
+- The API stays at `/api/v1`: only `score`, `score_reason` and `assessment` change meaning, and they were hours old.
+
+### Calibration run (2026-11-09, real sources)
+- **Good names (12):** wikipedia.org, python.org, github.com, mozilla.org, apache.org, kernel.org, nytimes.com, stackoverflow.com, cloudflare.com, wordpress.org, eff.org, archive.org.
+- **Bad names (12):** a random sample (seed 7) of apex .com/.net/.org names from the public Phishing Army blocklist (phishing.army, downloaded 2026-11-09), which aggregates reports from PhishTank, OpenPhish and others.
+  It mixes purpose-built phishing sites and hijacked ordinary sites, and some were already taken down.
+- Before tuning (first points): good names averaged 26 (9 definitely safe, 3 likely safe, none risky). Phishing names averaged 49: 4 likely malware, 3 undetermined, **5 likely safe**.
+- Tuning: "registered under 1 year ago" went from +10 to +20 and "first certificate under 1 year ago" from 0 to +10, because most reported names were under a year old and no good name was.
+  After tuning (re-scored from the same saved answers): good names unchanged (mean 26); phishing names mean 55: **7 likely malware, 1 undetermined, 4 likely safe**.
+- **This is not a fair test of the tuned scale.** The change was made after looking at these same 24 names, and 24 is a small sample. It shows the scores separate the groups and that "definitely safe" is reachable; it does not measure accuracy.
+- **What the scale cannot catch:** the 4 phishing names still scored "likely safe" were mostly older or hijacked sites. Registration facts cannot see reputation, so a hijacked old name looks safe.
+  A reputation source (such as a blocklist lookup) would be the real next step; it is not part of this project yet.
+- Source failures: crt.sh failed for 5 of the 24 names, DNS for 2 and RDAP for 1, as expected; a failed source is left out, and "definitely" is lowered to "likely" when fewer than 3 sources scored.
