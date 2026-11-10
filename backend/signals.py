@@ -1,4 +1,4 @@
-"""The signals behind each source's score. The rules, points and reasons are written in design.md section 4a; change them there first.
+"""The signals behind each source's score: the points and the reason for each one are written next to the rule that applies it.
 
 Every score starts at 50. Each signal that fires adds points (positive = more malicious, negative = more safe) and a short reason.
 """
@@ -7,7 +7,9 @@ import ipaddress
 from datetime import date
 
 START = 50
-NOT_FOUND_SCORES = {"dns": 55, "rdap": 50, "crtsh": 60}  # a slight lean towards risk for DNS and crt.sh (design.md 4a)
+# "Not found" is a real answer, so it gets a score. DNS (the name does not exist) and crt.sh (no certificate, ever) lean slightly towards risk.
+# RDAP also says "not found" for subdomains and for some top-level domains (.de, .io), so it stays neutral.
+NOT_FOUND_SCORES = {"dns": 55, "rdap": 50, "crtsh": 60}
 
 
 def age_in_days(text, today):
@@ -36,7 +38,9 @@ def odd_address(text):
 
 
 def name_shape_points(name):
-    """Points for how the name itself looks (at most +20): punycode, many digits, many hyphens, a very long label."""
+    """Points for how the name itself looks (at most +20): punycode, many digits, many hyphens, a very long label.
+
+    Generated and look-alike names often look like this."""
     points = []
     labels = name.split(".")
     if any(label.startswith("xn--") for label in labels):
@@ -57,12 +61,15 @@ def score_dns(data, name):
     """DNS: does it resolve, to what kind of address, with what TTL, and what does the name look like."""
     records = data["A"] + data["AAAA"]
     points = []
+    # Resolving is weak evidence of an ordinary site; a name that points nowhere is odd.
     if len(records) > 0:
         points.append((-10, "resolves to an address"))
     else:
         points.append((10, "no A or AAAA record"))
+    # Sinkholed, parked or internal addresses are not what a real public site uses.
     if any(odd_address(record["value"]) for record in records):
         points.append((25, "points to a loopback, private or reserved address"))
+    # Very short TTLs are typical of fast-changing (fast-flux) hosting.
     if len(records) > 0 and min(record["ttl"] for record in records) < 60:
         points.append((15, "very low TTL"))
     points += name_shape_points(name)
@@ -72,6 +79,7 @@ def score_dns(data, name):
 def score_rdap(data, today):
     """RDAP: how long ago was the name registered, and has it been put on hold."""
     points = []
+    # Newly registered names are a classic warning sign; long-lived ones are rarely throw-away.
     if data["registered"]:
         days = age_in_days(data["registered"], today)
         if days < 30:
@@ -83,7 +91,8 @@ def score_rdap(data, today):
         else:
             points.append((-40, "registered 5 years or more ago"))
     else:
-        points.append((0, "no registration date"))
+        points.append((0, "no registration date"))  # nothing to judge by
+    # A registry or registrar has suspended the name.
     if any("hold" in status.lower() for status in data["statuses"]):
         points.append((20, "a hold status"))
     return finish(points)
@@ -95,6 +104,7 @@ def score_crtsh(data, today, registered):
     `registered` is the RDAP registration date text, or None if RDAP gave none.
     """
     points = []
+    # A brand-new certificate history is a warning sign; a long one suggests an established site.
     days = age_in_days(data["first_seen"], today)
     if days < 30:
         points.append((25, "first certificate issued less than 30 days ago"))
@@ -102,6 +112,7 @@ def score_crtsh(data, today, registered):
         points.append((10, "first certificate issued less than 1 year ago"))
     else:
         points.append((-25, "first certificate issued 1 year or more ago"))
+    # A dormant name that suddenly gets certificates may have been revived or taken over.
     if registered and age_in_days(registered, today) >= 365 and days < 30:
         points.append((20, "registered long ago but the first certificate is new"))
     return finish(points)

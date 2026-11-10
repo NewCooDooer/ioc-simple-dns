@@ -1,7 +1,7 @@
 """Turns each source's result into a score from 0 to 100, then into one verdict.
 
 0 = definitely safe, 100 = definitely malware. These are rough guesses from weak signals, not findings.
-The rules and their reasons are written in design.md section 4a; change them there first.
+The signals, their points and their reasons are in signals.py; the verdict bands are in verdict_for below.
 """
 
 from backend.signals import NOT_FOUND_SCORES, score_crtsh, score_dns, score_rdap
