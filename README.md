@@ -69,13 +69,13 @@ curl -s http://127.0.0.1:8010/api/v1/health
 
 Each source in the answer has a `status`: `ok`, `not_found` (the source answered "nothing known") or `error` (the check could not be completed).
 One failing source never hides the others, and **one answering source is enough** to grade a name (the verdict says how many sources it rests on). Even if all three fail the API answers 200: every source block shows its error and the assessment says `not_graded` (no average, no verdict). Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
-See [`design.md`](design.md) sections 4 and 4a for the full contract and the scoring rules.
+See [`design.md`](design.md) for the full contract; the scoring rules are in `backend/signals.py` and `backend/scoring.py`.
 
 ## Caching
 
 Each source's result is kept in memory so that asking again does not contact the source again: Google DNS for the time Google's own `Cache-Control` header allows
-(its terms require that), RDAP for 1 hour, crt.sh for 6 hours; "not found" for less (5 and 10 minutes); an **error is never kept**. The reasons are in
-[`design.md`](design.md) section 11. A source that came from the cache gets a response header `X-Cache-Age-<source>: N` (N = seconds since it was fetched; no header means it was just fetched), and the page shows "Cached result, fetched 7 min ago".
+(its terms require that), RDAP for 1 hour, crt.sh for 6 hours; "not found" for less (5 and 10 minutes); an **error is never kept**. The times and their reasons are in
+`backend/cache.py`. A source that came from the cache gets a response header `X-Cache-Age-<source>: N` (N = seconds since it was fetched; no header means it was just fetched), and the page shows "Cached result, fetched 7 min ago".
 The cache is emptied when the backend restarts.
 
 ### See a source fail on purpose
@@ -132,7 +132,7 @@ To record fresh real answers (rarely needed; crt.sh may need many retries): `pyt
   "env": {"BACKEND_URL": "http://127.0.0.1:8010"}}}}
 ```
 
-`BACKEND_URL` is required; there is no default. Then ask Claude, for example, "look up example.com". No key is needed. See `design.md` section 12 for the decisions.
+`BACKEND_URL` is required; there is no default. Then ask Claude, for example, "look up example.com". No key is needed. See `design.md` for the decisions.
 
 If you already have other servers in the file, add `"ioc-dns": {...}` inside the existing `"mcpServers"` object (with a comma between entries); do not paste a second outer `{ }`.
 If the server shows as failed, open its log, `...\AppData\Local\Claude\logs\mcp-server-ioc-dns.log` (also behind "View logs" in Claude Desktop's settings), which shows the Python error.
