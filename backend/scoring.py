@@ -56,7 +56,7 @@ def verdict_for(average):
 def add_scores(sources, name, today):
     """Add "score" and "score_reason" to every source block, and return the "assessment" dictionary.
 
-    Returns None when no source produced a score (every source had an error); the caller answers 502 in that case.
+    When no source produced a score (every source had an error) the assessment says "not_graded": no average, no verdict.
     """
     # The certificate-gap signal needs RDAP's registration date, so find it first.
     registered = None
@@ -74,7 +74,16 @@ def add_scores(sources, name, today):
 
     average, used = average_of(scores)
     if average is None:
-        return None
+        return {
+            "score_min": MIN_SCORE,
+            "score_max": MAX_SCORE,
+            "average": None,
+            "sources_used": 0,
+            "sources_total": len(sources),
+            "verdict": "not_graded",
+            "verdict_label": "Not graded",
+            "verdict_note": "no source answered, so there is no verdict",
+        }
     code, label = verdict_for(average)
 
     # "Definitely" needs ALL sources. With fewer, lower it one step to the matching "likely" and say why.

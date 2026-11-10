@@ -104,32 +104,15 @@ def test_a_failing_source_has_a_null_score_and_is_not_averaged(client, mock):
     assert body["assessment"]["verdict"] == "likely_safe" and "2 of 3" in body["assessment"]["verdict_note"]
 
 
-def test_all_failed_answer_has_no_assessment(client, mock):
+def test_all_failed_answer_says_not_graded_in_its_assessment(client, mock):
     mock.add(responses.GET, ANY_DNS, status=502, body="x")
     mock.add(responses.GET, ANY_RDAP, status=502, body="x")
     mock.add(responses.GET, ANY_CRTSH, status=502, body="x")
-    body = client.get(HIT).get_json()
-    assert "assessment" not in body
+    assessment = client.get(HIT).get_json()["assessment"]
+    assert assessment["verdict"] == "not_graded" and assessment["average"] is None
 
 
-# ---- at least 2 of the 3 sources must answer: 0, 1, 2 and 3 failures ----
-
-TOO_FEW = "too few sources answered: at least 2 of 3 must answer"
-
-
-def test_two_failures_give_a_502_with_the_surviving_sources_facts_and_no_verdict(client, mock):
-    replay(mock, "dns", "hit")
-    replay(mock, "crtsh", "error_502")
-    mock.add(responses.GET, ANY_RDAP, status=503, body="unavailable")
-    response = client.get(HIT)
-    body = response.get_json()
-    assert response.status_code == 502
-    assert body["error"] == TOO_FEW and body["input"] == "example.com"
-    assert statuses(body) == {"dns": "ok", "rdap": "error", "crtsh": "error"}
-    assert len(body["sources"]["dns"]["data"]["A"]) > 0  # the one good source's facts are not lost
-    assert "assessment" not in body and "ioc" not in body
-    assert "score" not in body["sources"]["dns"]  # nothing was graded
-
+# ---- a valid name always gets a 200: one answering source is enough, and none gives a 'not graded' assessment (no 5xx) ----
 
 def test_one_failure_is_still_graded(client, mock):
     replay(mock, "dns", "hit")
@@ -140,12 +123,62 @@ def test_one_failure_is_still_graded(client, mock):
     assert response.get_json()["assessment"]["sources_used"] == 2
 
 
-def test_three_failures_give_the_same_502(client, mock):
+def test_two_failures_are_still_graded_from_the_one_answer(client, mock):
+    replay(mock, "dns", "hit")
+    replay(mock, "crtsh", "error_502")
+    mock.add(responses.GET, ANY_RDAP, status=503, body="unavailable")
+    response = client.get(HIT)
+    body = response.get_json()
+    assert response.status_code == 200
+    assert statuses(body) == {"dns": "ok", "rdap": "error", "crtsh": "error"}
+    assert body["assessment"]["sources_used"] == 1 and body["assessment"]["sources_total"] == 3
+    assert body["sources"]["dns"]["score"] is not None and body["sources"]["rdap"]["score"] is None
+
+
+def test_one_answer_never_gives_a_definitely_verdict_and_the_note_says_why(client, mock):
+    mock.add(responses.GET, ANY_DNS, status=503, body="x")
+    replay(mock, "rdap", "hit")  # RDAP alone scores 10, which on its own would be "definitely safe"
+    mock.add(responses.GET, ANY_CRTSH, status=503, body="x")
+    assessment = client.get(HIT).get_json()["assessment"]
+    assert assessment["sources_used"] == 1
+    assert assessment["verdict"] == "likely_safe" and "only 1 of 3" in assessment["verdict_note"]
+
+
+def test_one_not_found_answer_is_enough_and_is_graded(client, mock):
+    mock.add(responses.GET, ANY_DNS, status=502, body="x")
+    mock.add(responses.GET, ANY_RDAP, status=502, body="x")
+    replay(mock, "crtsh", "unknown")  # the only answer, and it is "not found" (an answer, with a score)
+    response = client.get(UNKNOWN)
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["sources"]["crtsh"]["status"] == "not_found"
+    assert body["assessment"]["sources_used"] == 1
+
+
+def test_three_failures_still_give_a_200_and_say_not_graded(client, mock):
     mock.add(responses.GET, ANY_DNS, status=502, body="x")
     mock.add(responses.GET, ANY_RDAP, status=502, body="x")
     mock.add(responses.GET, ANY_CRTSH, status=502, body="x")
     response = client.get(HIT)
-    assert response.status_code == 502 and response.get_json()["error"] == TOO_FEW
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["ioc"]["value"] == "example.com"
+    assert statuses(body) == {"dns": "error", "rdap": "error", "crtsh": "error"}
+    assert all(block["score"] is None for block in body["sources"].values())
+    assessment = body["assessment"]
+    assert assessment["verdict"] == "not_graded" and assessment["verdict_label"] == "Not graded"
+    assert assessment["average"] is None and assessment["sources_used"] == 0 and assessment["sources_total"] == 3
+    assert "no source answered" in assessment["verdict_note"]
+
+
+def test_three_timeouts_also_give_a_200_and_keep_the_timeout_errors(client, mock):
+    for pattern in (ANY_DNS, ANY_RDAP, ANY_CRTSH):
+        mock.add(responses.GET, pattern, body=requests.exceptions.ReadTimeout("simulated"))
+    response = client.get(HIT)
+    body = response.get_json()
+    assert response.status_code == 200
+    assert all(block["error"]["code"] == "timeout" for block in body["sources"].values())
+    assert body["assessment"]["verdict"] == "not_graded"
 
 
 def test_two_not_found_answers_and_one_failure_are_graded(client, mock):
@@ -157,15 +190,6 @@ def test_two_not_found_answers_and_one_failure_are_graded(client, mock):
     assert response.status_code == 200
     assert statuses(body) == {"dns": "not_found", "rdap": "not_found", "crtsh": "error"}
     assert body["assessment"]["sources_used"] == 2 and body["assessment"]["average"] == 53  # (55 + 50) / 2 = 52.5
-
-
-def test_one_not_found_answer_is_not_enough(client, mock):
-    mock.add(responses.GET, ANY_DNS, status=502, body="x")
-    mock.add(responses.GET, ANY_RDAP, status=502, body="x")
-    replay(mock, "crtsh", "unknown")  # the only answer, and it is "not found"
-    response = client.get(UNKNOWN)
-    assert response.status_code == 502
-    assert response.get_json()["sources"]["crtsh"]["status"] == "not_found"
 
 
 # ---- a name that no source knows ----
@@ -260,15 +284,15 @@ def test_simulated_unreadable_answer_is_invalid_response(client, mock):
     assert crtsh["status"] == "error" and crtsh["error"]["code"] == "invalid_response"
 
 
-def test_simulated_all_sources_failing_returns_502(client, mock):
+def test_simulated_all_sources_failing_is_a_200_that_is_not_graded(client, mock):
     mock.add(responses.GET, ANY_DNS, status=502, body="bad gateway")
     mock.add(responses.GET, ANY_RDAP, status=502, body="bad gateway")
     mock.add(responses.GET, ANY_CRTSH, status=502, body="bad gateway")
     response = client.get(HIT)
     body = response.get_json()
-    assert response.status_code == 502
-    assert body["error"] == TOO_FEW and body["input"] == "example.com"
+    assert response.status_code == 200
     assert statuses(body) == {"dns": "error", "rdap": "error", "crtsh": "error"}
+    assert body["assessment"]["verdict"] == "not_graded"
 
 
 # ---- bad input and unknown addresses ----

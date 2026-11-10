@@ -68,7 +68,7 @@ def lookup_domain(name: str) -> dict:
     if response.status_code == 400:
         message = _json(response).get("error", "not a valid DNS name")
         raise ToolError(message)
-    if response.status_code not in (200, 502):
+    if response.status_code != 200:
         raise ToolError(f"The portal backend answered with an unexpected status {response.status_code}.")
 
     body = _json(response)

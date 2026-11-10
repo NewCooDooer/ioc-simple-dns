@@ -501,3 +501,17 @@ Each time the code was restored (checked byte for byte) and all the tests passed
 - Real run: Google DNS and RDAP pointed at a dead address (`DNS_URL`, `RDAP_URL`), crt.sh real: HTTP 502, `{dns: error, rdap: error, crtsh: ok}`, no assessment.
   The page showed "Not enough sources answered (at least 2 of 3 must), so there is no verdict" and listed each source, including crt.sh's 45 certificates.
 
+
+## Correction after instructor feedback: no 5xx for failing sources (2026-11-10)
+- Feedback: a 502 means an error, but a request that returns data has not failed; lacking data should be handled separately, one answering source is enough to make a determination,
+  and 5xx codes are kept for something severe (such as a socket not open). So the "at least 2 of 3 must answer" rule of Milestone 5 (PR #14) was removed, and so is the 502 for "all failed". Branch: `fix-status-codes`. Rules (design.md sections 4 and 4a):
+  - 1, 2 or 3 answering sources (`ok` or `not_found`): graded, HTTP 200. `sources_used` is 1, 2 or 3 and a "definitely" verdict is lowered to "likely" with `verdict_note`.
+  - All three sources in `error` (including all three timing out): still HTTP 200. Every `score` is `null`, each block shows its error, and `assessment` is `not_graded` (`average` `null`, `sources_used` 0, note "no source answered, so there is no verdict").
+  - The contract changes by an addition (verdict code `not_graded`) and one meaning change: `average` can be `null`. Recorded in design.md 4a.
+- Evidence: 102 tests pass offline (new: one and two answering sources graded, the verdict note for one source, a lone `not_found` graded, all-failed and all-timeout giving a 200 with `not_graded`, and the MCP tool treating any status other than 200 or 400 as a tool error).
+  With each rule broken on purpose (an all-failed answer made a 502 again; the `not_graded` code changed; `sources_used` wrong), tests failed every time.
+- Real runs (this machine, services made to fail on purpose with `DNS_URL`, `RDAP_URL`, `CRTSH_URL`):
+  - All three pointed at an address where nothing listens: HTTP 200, three `upstream_error`, every score `null`, assessment `not_graded` (`average` null, `sources_used` 0). The page showed "Not graded: no source answered, so there is no score" and each source's error.
+  - Google DNS and RDAP dead, crt.sh real: HTTP 200, only crt.sh `ok`, average 25 Likely safe, `sources_used` 1, note "only 1 of 3 sources gave a score, so the verdict cannot be 'definitely'".
+  - All three pointed at a server that accepts but never answers: HTTP 200 after 80 s (10 + 10 + 60), three `timeout` errors, `not_graded`.
+- Not checked: all three real services timing out together (the timeout case used a server that never answers), and the Claude skill and MCP tool text of PR #15, which still describe the old "at least 2 of 3" rule.

@@ -87,7 +87,7 @@ Every source block has `status`, `data` and, only on error, `error`:
 | `error` | we could not get an answer (`error.code` is `timeout`, `upstream_error` or `invalid_response`) |
 
 **`not_found` is an answer; `error` is not.** One failed source never changes the status code: the other two still return and the answer is graded from them.
-At least **2 of the 3 sources must answer** (`ok` or `not_found`); if 2 or 3 ended in `error` there is nothing reliable to grade, so the answer is a 502 (see below) and carries no verdict.
+**A valid name always gets a 200, even when every source failed**: the request itself worked, and each failing source is shown in its own block. **One answering source (`ok` or `not_found`) is enough** to grade the name, and the verdict says how many sources it rests on (a "definitely" verdict needs all three, see 4a). If none answered, `assessment.verdict` is `not_graded` (no average, no verdict; see 4a).
 In Milestone 1 only `dns` was present; Milestone 2 adds `rdap` and `crtsh` without renaming anything. The sources are asked in the order dns, rdap, crtsh.
 
 Other responses, always in the same format `{"error": "...", "input": "..."}` (`input` only when there is one):
@@ -95,9 +95,10 @@ Other responses, always in the same format `{"error": "...", "input": "..."}` (`
 | Status | When |
 |---|---|
 | 400 | the name is not a valid DNS name (an IP address, a URL, spaces, ...) |
-| 502 | **2 or more** sources ended in `error`, so fewer than 2 answered. The message is `too few sources answered: at least 2 of 3 must answer`. The body also holds `sources`, so the facts of any source that did answer are not lost, but it holds **no** `assessment` and no scores. |
 | 404 | unknown address (including an empty name) |
 | 500 | an unexpected bug (details go to the log, not the answer) |
+
+A source that fails never gives a 5xx: 5xx codes are kept for something severe in the backend itself (instructor's rule, 2026-11-10), and a failed source is data, not a failed request.
 
 `GET /api/v1/health` returns `{"status": "ok"}`.
 
@@ -152,10 +153,11 @@ There is no strong sign of safety, only the absence of warning signs, so "defini
 (`definitely_safe` becomes `likely_safe`, `definitely_malware` becomes `likely_malware`) and `verdict_note` says why. All other verdicts are unaffected by a missing source.
 `verdict_note` is `null` unless a verdict was lowered.
 
-**Too few sources.** Grading needs at least 2 sources to have answered. With 2 or 3 failures the answer is the 502 described in section 4 and carries no assessment, so `sources_used` is always 2 or 3.
-(Changed 2026-11-09: before, only three failures gave a 502 and a single surviving source was graded on its own.) A `not_found` is an answer and gets a score, so a name nobody knows (three `not_found`) averages 55 and lands on `undetermined`.
+**Fewer sources, still graded.** One, two or three answering sources are graded, so `sources_used` is 1, 2 or 3. With fewer than three, a "definitely" verdict is lowered to "likely" and `verdict_note` says why (for example "only 1 of 3 sources gave a score"); that note, with `sources_used`, is how lacking data is shown. A `not_found` is an answer and gets a score, so a name nobody knows (three `not_found`) averages 55 and lands on `undetermined`.
+**Nothing to grade.** If all three sources ended in `error`, the answer is still a 200: every `score` is `null`, and the assessment is `{"average": null, "sources_used": 0, "sources_total": 3, "verdict": "not_graded", "verdict_label": "Not graded", "verdict_note": "no source answered, so there is no verdict"}`. The source blocks show each error, including `timeout`.
+(Changed 2026-11-10 after instructor feedback: a 502 means an error, and a request that returned data did not fail; lacking data belongs in the answer, and the instructor keeps 5xx codes for something severe. Before this, from 2026-11-09, two or three failures gave a 502, and before that only three failures did.)
 
-`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer), `sources_used` (integer 2 or 3), `sources_total` (3), `verdict` (code), `verdict_label` (text), `verdict_note` (text, or `null` when no verdict was lowered).
+`assessment` fields: `score_min` (0), `score_max` (100), `average` (integer, or `null` when `verdict` is `not_graded`), `sources_used` (integer 1 to 3), `sources_total` (3), `verdict` (code: `definitely_safe`, `likely_safe`, `undetermined`, `likely_malware`, `definitely_malware`, or `not_graded`), `verdict_label` (text), `verdict_note` (text, or `null` when no verdict was lowered).
 
 ## 4b. Checking the scale against real names
 
@@ -209,7 +211,7 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 
 **Milestone 2: three sources and recorded tests.** Done when:
 1. One response holds `dns`, `rdap` and `crtsh` results.
-2. A failing source still returns the other two with its error shown; all three failing returns 502.
+2. A failing source still returns the other two with its error shown; all three failing returned 502 at the time (since 2026-11-10 it is a 200 that says `not_graded`, see section 4).
 3. Tests replay recordings and pass with the network off, covering a hit, an unknown name and a source error.
 4. No key in any recording or commit.
 5. `design.md` and the README match the code.
@@ -230,10 +232,15 @@ This version only *documents* the rule (users are warned); enforcing it in code 
 6. A fixed run of at least 20 lookups is counted before and after, per source, without real network access.
 7. Merged to `main` through a pull request that the owner reviews.
 
-**Milestone 5: at least two sources must answer.** Done when:
+**Milestone 5: at least two sources must answer.** (Superseded 2026-11-10: see the correction below.) Done when:
 1. Two or three sources in `error` give a 502 with the message and the `sources` blocks of section 4, and no `assessment`; one failure still gives a graded 200.
 2. Tests cover 0, 1, 2 and 3 failing sources, a `not_found` counting as an answer, and a 502 that still shows the surviving source's facts.
 3. The page shows the 502 as "not enough sources answered" and still lists each source; `design.md` and the README match the code; merged to `main` through a pull request.
+
+**Correction after feedback (2026-11-10): no 5xx for failing sources.** Done when:
+1. One or two answering sources give a graded 200 with `sources_used` 1 or 2 and a `verdict_note` where a "definitely" verdict was lowered.
+2. All three failing (including all three timing out) also give a 200: every source block shows its error, and `assessment` is `not_graded` with `average` `null` and `sources_used` 0.
+3. Tests cover 0, 1, 2 and 3 failing sources and all-timeout, and each rule was broken on purpose to see a test fail; the page, the MCP tool, `design.md` and the README match the code; merged to `main` through a pull request.
 
 ## 10. How this differs from the full version
 
@@ -284,7 +291,7 @@ Why the expiry alone is not enough: results can be kept for up to 6 hours, and a
 An analyst deciding something from the result must be able to see how old it is.
 
 **What did not change.** The body, every existing field, status code and the order of the sources. Invalid input still returns 400 before the cache or any source is touched.
-The 502 response has no cache headers, because an error is never cached.
+A source block that is an error has no cache header, because an error is never cached.
 
 **Measured.** `bench/run_benchmark.py` sends the same 27 lookups (repeats, six spellings of one name, a name that does not exist, a name whose crt.sh lookup fails, two invalid inputs)
 through the backend with a fake web that replays the recordings (no real requests, sockets blocked) and counts outbound requests per source:
@@ -306,7 +313,7 @@ It adds no new data and no new rules: it only wraps the two backend routes as to
 Decisions and reasons:
 - **It calls the backend API only, never a source.** The backend stays the one place that knows the sources, the validation and the failure rules, so the MCP server cannot drift from the contract in section 4.
 - **The backend address comes from the `BACKEND_URL` environment variable, with no default in code.** The address is configuration, not code. It is set in the Claude Desktop config, which lives on the user's machine and not in the repository. If it is missing, the server exits with a clear message.
-- **An invalid name or an unreachable backend is a tool error, not a crash.** Claude sees the message (for example "not a valid DNS name") and can correct the input. A 502 (too few sources answered) is returned as data, because it still carries each source's block and error.
+- **An invalid name or an unreachable backend is a tool error, not a crash.** Claude sees the message (for example "not a valid DNS name") and can correct the input. An answer where no source answered (verdict `not_graded`) is returned as data like any other, because it still carries each source's block and error.
 - **Nothing but the protocol goes to stdout.** Over stdio, stdout is the channel to Claude, so any `print` would corrupt it. The server logs to stderr only.
 - **The wait is 100 seconds**, the same as the page, because a fresh lookup runs the sources one after another and crt.sh alone may take 60 seconds.
 - **No batch tool.** RDAP allows about 10 requests per 10 seconds and crt.sh is unreliable; Claude can call the single lookup several times.

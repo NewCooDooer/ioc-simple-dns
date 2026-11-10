@@ -35,9 +35,15 @@ def test_invalid_name_is_a_tool_error_with_the_backend_message(mock):
 
 
 def test_all_sources_failed_is_returned_as_data(mock):
-    body = {"error": "too few sources answered: at least 2 of 3 must answer", "sources": {"dns": {"status": "error"}}}
-    mock.add(responses.GET, BACKEND + "/api/v1/domain/example.com", status=502, json=body)
-    assert server.lookup_domain("example.com")["error"].startswith("too few sources answered")
+    body = {"ioc": {}, "sources": {"dns": {"status": "error"}}, "assessment": {"verdict": "not_graded", "average": None}}
+    mock.add(responses.GET, BACKEND + "/api/v1/domain/example.com", json=body)
+    assert server.lookup_domain("example.com")["assessment"]["verdict"] == "not_graded"
+
+
+def test_a_status_other_than_200_and_400_is_a_tool_error(mock):
+    mock.add(responses.GET, BACKEND + "/api/v1/domain/example.com", status=502, json={"error": "x"})
+    with pytest.raises(ToolError, match="unexpected status 502"):
+        server.lookup_domain("example.com")
 
 
 def test_unreachable_backend_is_a_tool_error(mock):

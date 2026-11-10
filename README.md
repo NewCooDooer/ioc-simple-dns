@@ -69,7 +69,7 @@ curl -s http://127.0.0.1:8010/api/v1/health
 ```
 
 Each source in the answer has a `status`: `ok`, `not_found` (the source answered "nothing known") or `error` (the check could not be completed).
-One failing source never hides the others, but at least **2 of the 3 sources must answer**: if two or three fail, the API answers 502 with each source's block and no verdict. Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
+One failing source never hides the others, and **one answering source is enough** to grade a name (the verdict says how many sources it rests on). Even if all three fail the API answers 200: every source block shows its error and the assessment says `not_graded` (no average, no verdict). Each source also has a `score` (0 = definitely safe, 100 = definitely malware, or `null` after an error) and the answer has an `assessment` with the average and the verdict.
 See [`design.md`](design.md) sections 4 and 4a for the full contract and the scoring rules.
 
 ## Caching
@@ -101,7 +101,7 @@ status number and body, never headers). `pytest-socket` makes any real network c
 sandbox-exec -p '(version 1)(allow default)(deny network*)' python -m pytest -v
 ```
 
-The tests cover a known name, an unknown name, a real recorded crt.sh 502, two or more sources failing (502), invalid input (400), and two failures that are
+The tests cover a known name, an unknown name, a real recorded crt.sh 502, one or two sources answering (graded), all three failing or timing out (200, not graded), invalid input (400), and two failures that are
 **simulated** (a timeout and an unreadable answer), because a real service cannot be asked to fail on command.
 
 The cache tests (`tests/test_cache.py`) show a hit, a miss, an expired entry (with a fake clock, so nothing waits) and errors that are not cached.
