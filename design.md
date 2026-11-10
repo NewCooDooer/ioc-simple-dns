@@ -1,7 +1,7 @@
 # IOC Enrichment Portal (DNS names), simple version: design
 
-This file holds the API contract and the main decisions with their reasons. Numbers (points, bands, times, limits) are in the code, not here.
-The history of each change is in its pull request.
+This file holds the API contract, the data sources, the main decisions with their reasons, and the milestones. Numbers from the code (points, bands, times) are in the code, not here.
+The history and the evidence of each change are in its pull request.
 
 ## Purpose and scope
 
@@ -67,6 +67,16 @@ A failing source never gives a 5xx: that is data in its own block, not a failed 
 
 `GET /api/v1/health` returns `{"status": "ok"}`.
 
+## Data sources
+
+All three need no key. The limits and terms are the providers' own figures, checked on their pages on 2026-11-10.
+
+| Source | Limit | Terms and notes |
+|---|---|---|
+| Google Public DNS (`dns.google/resolve`) | 1500 queries per second per client address; short bursts are allowed | Its terms (Google APIs Terms, 5(e)(1)) forbid keeping cached copies longer than the cache header permits. |
+| RDAP (`rdap.org`) | 10 requests in 10 seconds, then HTTP 429 | It redirects to the registry, and the redirect must be followed. A 404 means it knows no registry for that name (it only knows servers registered with IANA); a 403 means blocked for abuse. No formal terms and no caching rules. |
+| crt.sh (`crt.sh`) | none published | No terms or limits on its own pages (its footer names Sectigo). In practice it is slow and often fails with an HTTP 5xx. |
+
 ## Main decisions
 
 - **Flask, `requests`, Streamlit, plain dictionaries:** the simplest tools that do the job; the contract is checked by tests instead of model classes.
@@ -86,3 +96,16 @@ A failing source never gives a 5xx: that is data in its own block, not a failed 
 - **Tests replay recorded real answers with the network blocked:** a real service cannot be asked to fail on command, so timeouts and unreadable answers are simulated and labelled as such.
 - **The MCP server calls the backend API only, never a source:** the backend stays the one place that knows the sources and the failure rules. It takes the backend address from `BACKEND_URL` (no default in code), prints nothing but the protocol to stdout, and is started by its file path because Claude Desktop ignored a working directory.
 - **The Claude skill only formats what the tool returns:** the score and verdict are the portal's, never its own.
+
+## Milestones
+
+Each is done when its pull request is merged; the PR holds the evidence and the details.
+
+- **M0 Design (#1):** this file covers the required topics.
+- **M1 Thinnest slice (#2):** the API answers for one source (Google DNS), an invalid name gets a 400, and the page shows the result.
+- **M2 Three sources and recorded tests (#3):** one answer holds all three sources, a failing source never hides the others, and the tests pass with the network off.
+- **M3 Scores and verdict (#10, reworked in #13):** every source has a score and the answer has a verdict, with every rule covered by tests.
+- **M4 Caching (#7):** each source is cached for its own time, errors are never cached, and the cache age is visible.
+- **M5 Failure handling (#14, #16):** one answering source is enough to grade, and a failing source never gives a 5xx.
+- **M6 MCP server (#8):** Claude Desktop can look up a name through a tool that calls only the backend, with offline tests.
+- **M7 Claude skill (#15):** a skill makes Claude's answers follow one fixed layout and report the portal's own score and verdict.
