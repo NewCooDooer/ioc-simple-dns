@@ -72,6 +72,13 @@ def not_found(problem):
     return error_answer(404, "not found")
 
 
+@app.errorhandler(405)
+def method_not_allowed(problem):
+    response, status = error_answer(405, "method not allowed")
+    response.headers["Allow"] = ", ".join(problem.valid_methods or [])  # HTTP says a 405 must list the methods that work
+    return response, status
+
+
 @app.errorhandler(500)
 def internal_error(problem):
     return error_answer(500, "internal error")

@@ -59,6 +59,7 @@ Other responses use one format, `{"error": "...", "input": "..."}` (`input` only
 |---|---|
 | 400 | the name is not a valid DNS name (an IP address, a URL, spaces, ...); no source is called |
 | 404 | unknown address (including an empty name) |
+| 405 | the HTTP method is not allowed (only `GET` works) |
 | 500 | an unexpected bug (details go to the log, not the answer) |
 
 A failing source never gives a 5xx: that is data in its own block, not a failed request.
