@@ -9,8 +9,6 @@ from backend.scoring import add_scores
 from backend.sources import ask_crtsh, ask_dns, ask_rdap
 from backend.validate import check_name
 
-MIN_ANSWERS = 2  # at least this many of the three sources must answer, otherwise we do not grade (design.md section 4)
-
 app = Flask(__name__)
 app.json.sort_keys = False  # keep the answer's fields in the order we wrote them
 
@@ -48,15 +46,9 @@ def domain(name):
     sources = {"dns": dns, "rdap": rdap, "crtsh": crtsh}
     ages = {"dns": dns_age, "rdap": rdap_age, "crtsh": crtsh_age}
 
-    # Step 3: count the sources that ANSWERED (ok or not_found; an error is not an answer).
-    # If fewer than MIN_ANSWERS answered there is nothing reliable to grade, so answer 502. The source blocks still go
-    # along, so the facts of a source that did answer are not lost.
-    answered = 0
-    for block in sources.values():
-        if block["status"] != "error":
-            answered += 1
-    if answered < MIN_ANSWERS:
-        return error_answer(502, f"too few sources answered: at least {MIN_ANSWERS} of {len(sources)} must answer", name, {"sources": sources})
+    # Step 3: a valid name always gets a 200, even when every source failed: the request itself worked, and a failing
+    # source is shown in its own block. How much the answer rests on is told by "sources_used" and "verdict_note" in the
+    # assessment (one answering source is enough to grade; none means "not_graded").
 
     # Step 4: score each source, average the scores and pick a verdict (the sources dictionary gets "score" fields added).
     answer = {

@@ -50,6 +50,7 @@ Then, for each name in the same order, the detail block:
 
 ### <name as given>
 **Lookup:** value `<ioc.value>` · <n> ok, <n> not_found, <n> error · Cache: dns <age in seconds or fresh>, rdap <age or fresh>, crtsh <age or fresh>
+(For a source with `status: error` write `no result` instead of an age or `fresh`.)
 
 #### Assessment
 | Field | Value |
@@ -101,10 +102,12 @@ If the user gave several names, repeat the whole block per name, in the order gi
   "Not retrieved: <source> failed (<code>)." The other sources are still reported in full.
 - A source has `status: not_found`: in its section write "No record: <source> has nothing for this name."
   This is an answer, not a failure, and it has a score.
-- Two or three sources failed (the tool returns an `error` such as "too few sources answered", with no `assessment`):
-  in the Summary row write Score `-`, Verdict "Not graded", Reasons the error message as returned.
-  In the detail block write "Not graded: fewer than 2 of 3 sources answered." under Assessment,
-  and fill Source status and the data sections from the source blocks that did answer.
+- No source answered (a normal result: every source has `status: error`, and `assessment` has `verdict: not_graded`, `average: null`, `sources_used: 0`):
+  in the Summary row write Score `-`, Verdict "Not graded", Reasons each source as `<source>: no score (<code>)` and then `Note: <verdict_note>`.
+  In the detail block write "Not graded: no source answered." under Assessment, with Average score `-` and Sources scored `0 of 3`;
+  keep every row of Source status, and write "Not retrieved: <source> failed (<code>)." in each data section.
+- One or two sources failed but at least one answered: this is graded as normal. The Assessment shows how many sources were scored
+  and the `verdict_note`, and each failed source follows the first rule above.
 - The tool refuses the value (IP address, URL, single word, bad characters, empty):
   in the Summary row write Score `-`, Verdict "Not looked up", Reasons the tool's error message as returned.
   Give that name no detail block. Ask for a plain domain name. Do not fix the value and try again.

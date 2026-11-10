@@ -61,8 +61,11 @@ def show_assessment(body):
     """Show the three scores, the average and the verdict, with the caveat that it is only a rough guess."""
     assessment = body["assessment"]
     st.markdown("### Verdict")
-    st.write(f"**{assessment['verdict_label']}**: average score {assessment['average']} "
-             f"(0 = definitely safe, 100 = definitely malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
+    if assessment["average"] is None:
+        st.write(f"**{assessment['verdict_label']}**: no source answered, so there is no score. The sources below show what each one returned.")
+    else:
+        st.write(f"**{assessment['verdict_label']}**: average score {assessment['average']} "
+                 f"(0 = definitely safe, 100 = definitely malware), from {assessment['sources_used']} of {assessment['sources_total']} sources.")
     if assessment["verdict_note"] is not None:
         st.warning(assessment["verdict_note"].capitalize() + ".")
     rows = {}
@@ -139,10 +142,6 @@ if submitted:
     body = response.json()
     if response.status_code == 400:
         st.warning(f"Invalid input: {body['error']}")
-    elif response.status_code == 502:
-        st.error("Not enough sources answered (at least 2 of 3 must), so there is no verdict. The sources below show what each one returned.")
-        for key, block in body["sources"].items():
-            show_source(key, block)
     elif response.status_code != 200:
         st.error(f"Unexpected answer from the backend: {body.get('error', response.status_code)}")
     else:

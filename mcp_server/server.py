@@ -58,11 +58,11 @@ def lookup_domain(name: str) -> dict:
     Each source also has "score" (0 to 100, or null after an error) and "score_reason" (the signals that fired).
     The scale is 0 = definitely safe, 100 = definitely malware.
     "assessment" has the average score, how many sources were scored ("sources_used" of "sources_total"), the verdict
-    ("verdict", "verdict_label": definitely safe, likely safe, undetermined, likely malware, definitely malware)
+    ("verdict", "verdict_label": definitely safe, likely safe, undetermined, likely malware, definitely malware, or not graded)
     and "verdict_note" (text when a "definitely" verdict was lowered because a source gave no score, else null).
     "cache_age_seconds" lists, per source, how old a cached answer is; a source missing from it was fetched fresh.
-    If fewer than 2 of the 3 sources answer, the backend answers 502: the result carries an "error" message and each
-    source's block, but no "assessment" and no scores.
+    If no source answers, the result is still a normal answer: every source block shows its error and "assessment" has
+    "verdict" "not_graded" ("Not graded") with a null "average" and "sources_used" 0. One or two answering sources are graded.
     A fresh lookup can take up to about a minute because crt.sh is slow.
 
     The score and verdict are the portal's rough risk indicator from public registration facts, not a malware test.
@@ -75,7 +75,7 @@ def lookup_domain(name: str) -> dict:
     if response.status_code == 400:
         message = _json(response).get("error", "not a valid DNS name")
         raise ToolError(message)
-    if response.status_code not in (200, 502):
+    if response.status_code != 200:
         raise ToolError(f"The portal backend answered with an unexpected status {response.status_code}.")
 
     body = _json(response)

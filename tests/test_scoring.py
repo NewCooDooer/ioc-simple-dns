@@ -150,8 +150,9 @@ def test_not_found_leans_a_little_and_error_has_no_score():
         scores[key] = block["score"]
     assert scores == {"dns": 55, "rdap": 50, "crtsh": 60}
     sources = {"dns": dict(ERROR), "rdap": dict(ERROR), "crtsh": dict(ERROR)}
-    assert add_scores(sources, NAME, TODAY) is None
+    assessment = add_scores(sources, NAME, TODAY)
     assert sources["dns"]["score"] is None
+    assert assessment["verdict"] == "not_graded" and assessment["average"] is None and assessment["sources_used"] == 0
 
 
 # ---- the whole assessment ----
