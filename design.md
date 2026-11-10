@@ -162,7 +162,7 @@ There is no strong sign of safety, only the absence of warning signs, so "defini
 ## 4b. Checking the scale against real names
 
 The points above are starting guesses. They are checked by running a small set of well-known good names and recently reported bad names through the real sources, saving the answers like the other recordings, and
-looking at whether the scores separate the two groups. The result and any change to the points are written in `docs/milestones.md` (first run: 2026-11-09, 12 good and 12 reported-phishing names). A group of names this small shows whether the scale is plausible;
+looking at whether the scores separate the two groups. The result of a run and any change to the points are recorded in the description of the pull request that makes the change (first run: 2026-11-09, 12 good and 12 reported-phishing names). A group of names this small shows whether the scale is plausible;
 it does not prove it is accurate.
 
 ## 5. Input rules

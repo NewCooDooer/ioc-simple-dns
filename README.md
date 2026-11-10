@@ -7,8 +7,7 @@ It follows the same assignment specifications as the full version, with the simp
 and crt.sh (which certificates were issued). If one source fails, the other two still return and the failed one says what went wrong.
 Each source gets a 0-100 score (0 = definitely safe, 100 = definitely malware) built from a few signals such as name age, odd addresses and a brand-new certificate on an old name; the scores are averaged, and the average gives a verdict (definitely safe, likely safe, undetermined, likely malware or definitely malware). "Definitely" needs all three sources to have scored. It is a risk indicator from public facts, not a malware test.
 Answers are **cached in memory** (each source for its own time, see [Caching](#caching)), and the backend says which sources came from the cache (in response headers; the JSON body is unchanged).
-Tests replay recorded real answers and run with the network off. The plan and the API contract are in [`design.md`](design.md);
-the evidence for each milestone is in [`docs/milestones.md`](docs/milestones.md).
+Tests replay recorded real answers and run with the network off. The plan and the API contract are in [`design.md`](design.md).
 
 > **Do not enter internal or private names** (for example `*.corp`, `*.local`, your company's domains). Lookups go to outside services.
 > The sources report facts; the backend turns them into a rough score and verdict, which is a guess, not a finding.
@@ -164,5 +163,4 @@ mcp_server/server.py  the MCP server that lets Claude call the backend
 record.py             saves real answers for the tests (run by hand)
 tests/                the tests and the recorded answers (tests/fixtures/)
 design.md             the plan and the API contract
-docs/                 evidence for each milestone
 ```
