@@ -13,8 +13,9 @@ Rules this file enforces:
 import threading
 import time
 
-# How long each source's answers are kept, in seconds. The reasons are in design.md, section 11.
-# Google DNS is not listed here: its time comes from Google's own Cache-Control header on each reply.
+# How long each source's answers are kept, in seconds, with the reason for each.
+# Google DNS is not listed here: its time comes from Google's own Cache-Control header on each reply, because Google's
+# terms forbid keeping a copy longer than that header allows (a reply without max-age is not kept at all).
 RDAP_OK_SECONDS = 60 * 60  # registration details change rarely
 RDAP_NOT_FOUND_SECONDS = 5 * 60  # a name can be registered at any moment
 CRTSH_OK_SECONDS = 6 * 60 * 60  # slowest, most limited source; certificate history only grows
