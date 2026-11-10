@@ -318,6 +318,6 @@ Decisions and reasons:
 - **The wait is 100 seconds**, the same as the page, because a fresh lookup runs the sources one after another and crt.sh alone may take 60 seconds.
 - **No batch tool.** RDAP allows about 10 requests per 10 seconds and crt.sh is unreliable; Claude can call the single lookup several times.
 - **No key or token.** The backend needs none, so neither the server, its configuration nor any commit holds one.
-- **Sources report facts.** The tool description tells Claude not to call a name safe or malicious, and not to look up internal names, since lookups go to outside services.
+- **Score and verdict come from the backend only.** The tool description tells Claude to report the portal's score and verdict as given, never to add a verdict of its own, and not to look up internal names, since lookups go to outside services.
 - **The server is started by its file path, not as a module (`python mcp_server\server.py`, not `python -m mcp_server.server`).** Claude Desktop ignored the `cwd` setting, so Python started in another folder and could not find the `mcp_server` package (`ModuleNotFoundError`, seen in the log). The file imports only installed packages, so the working directory does not matter.
 - **Checked in Claude Desktop (2026-11-09).** An IP address (`1.2.3.4`) shows the tool as failed with the backend's message ("IP addresses are not accepted"), and Claude explains it; the server keeps running.
