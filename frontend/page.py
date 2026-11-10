@@ -1,6 +1,6 @@
 """The web page. It gets ALL its data from the backend and never calls a source itself.
 
-Start it with:  streamlit run frontend/page.py --server.port 8510
+Start it with:  streamlit run frontend/page.py
 Streamlit runs this whole file again, from top to bottom, every time the page loads or someone clicks.
 """
 

@@ -60,7 +60,7 @@ def lookup_domain(name: str) -> dict:
     "assessment" has the average score, how many sources were scored ("sources_used" of "sources_total"), the verdict
     ("verdict", "verdict_label": definitely safe, likely safe, undetermined, likely malware, definitely malware, or not graded)
     and "verdict_note" (text when a "definitely" verdict was lowered because a source gave no score, else null).
-    "cache_age_seconds" lists, per source, how old a cached answer is; a source missing from it was fetched fresh.
+    "cache_age_seconds" lists, per source, how old a cached answer is; a source missing from it was fetched fresh, or failed (an error is never cached).
     If no source answers, the result is still a normal answer: every source block shows its error and "assessment" has
     "verdict" "not_graded" ("Not graded") with a null "average" and "sources_used" 0. One or two answering sources are graded.
     A fresh lookup can take up to about a minute because crt.sh is slow.
