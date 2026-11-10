@@ -295,6 +295,13 @@ def test_simulated_all_sources_failing_is_a_200_that_is_not_graded(client, mock)
     assert body["assessment"]["verdict"] == "not_graded"
 
 
+def test_a_wrong_http_method_gets_the_json_error_format_not_an_html_page(client):
+    response = client.post(HIT)
+    assert response.status_code == 405
+    assert response.get_json() == {"error": "method not allowed"}
+    assert "GET" in response.headers["Allow"]
+
+
 # ---- bad input and unknown addresses ----
 
 def test_an_invalid_name_is_400_and_no_outside_service_is_contacted(client, mock):
