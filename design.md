@@ -20,7 +20,7 @@ Browser -> Streamlit page --HTTP/JSON--> Flask backend -> Google DNS, then RDAP,
 
 - The page gets all its data from the backend and never calls a source. Both programs listen on `127.0.0.1` only.
 - The sources are asked one after another, so a lookup takes the sum of their times (crt.sh alone can take about a minute).
-- The MCP server (`mcp_server/`) and the Claude skill (`.claude/skills/`) are further clients of the backend.
+- The MCP server (`mcp_server/`) is a further client of the backend, and the Claude skill (`.claude/skills/`) formats what the MCP server's tool returns.
 
 ## API contract (version 1)
 

@@ -46,11 +46,10 @@ def domain(name):
     sources = {"dns": dns, "rdap": rdap, "crtsh": crtsh}
     ages = {"dns": dns_age, "rdap": rdap_age, "crtsh": crtsh_age}
 
-    # Step 3: a valid name always gets a 200, even when every source failed: the request itself worked, and a failing
-    # source is shown in its own block. How much the answer rests on is told by "sources_used" and "verdict_note" in the
+    # Step 3: score each source, average the scores and pick a verdict (the sources dictionary gets "score" fields added).
+    # A valid name always gets a 200, even when every source failed: the request itself worked, and a failing source is
+    # shown in its own block. How much the answer rests on is told by "sources_used" and "verdict_note" in the
     # assessment (one answering source is enough to grade; none means "not_graded").
-
-    # Step 4: score each source, average the scores and pick a verdict (the sources dictionary gets "score" fields added).
     answer = {
         "ioc": {"type": "domain", "input": name, "value": clean_name},
         "sources": sources,
@@ -58,8 +57,8 @@ def domain(name):
     }
     response = jsonify(answer)
 
-    # Step 4: say which sources came from the cache. The body stays exactly as the sources gave it; the news goes in
-    # headers, one per cached source, for example  X-Cache-Age-rdap: 412  (fetched 412 s ago).
+    # Step 4: say which sources came from the cache. That news goes in headers, not in the body: one header per cached
+    # source, for example  X-Cache-Age-rdap: 412  (fetched 412 s ago).
     # A source with no such header was just fetched. (An error is never cached, so it never gets one.)
     for key, age in ages.items():
         if age is not None:
